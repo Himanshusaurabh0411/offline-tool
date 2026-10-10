@@ -45,9 +45,12 @@ export const App: React.FC = () => {
     try { return JSON.parse(localStorage.getItem('offlineforge_recent') || '[]'); } catch { return []; }
   });
 
+  const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
+
   useEffect(() => {
     const handleLocationChange = () => {
       const path = window.location.pathname.replace(/^\/+/, '');
+      setCurrentPath(window.location.pathname);
       if (path === 'workflow') { setActiveTool(null); }
       else if (path) {
         const toolId = getToolIdFromRoute(path);
@@ -83,6 +86,7 @@ export const App: React.FC = () => {
   const openTool = (tool: ToolPlugin, files: File[] = []) => {
     setActiveTool(tool); setStagedFiles(files);
     window.history.pushState({ toolId: tool.id }, '', `/${getToolRoute(tool.id)}`);
+    setCurrentPath(`/${getToolRoute(tool.id)}`);
     const updated = [tool.id, ...recentToolIds.filter(id => id !== tool.id)].slice(0, 8);
     setRecentToolIds(updated);
     localStorage.setItem('offlineforge_recent', JSON.stringify(updated));
@@ -97,6 +101,14 @@ export const App: React.FC = () => {
   const backToHome = () => {
     setActiveTool(null); setStagedFiles([]);
     window.history.pushState({}, '', '/');
+    setCurrentPath('/');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openWorkflowBuilder = () => {
+    setActiveTool(null); setStagedFiles([]);
+    window.history.pushState({}, '', '/workflow');
+    setCurrentPath('/workflow');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -163,7 +175,7 @@ export const App: React.FC = () => {
     { id: 'archives', label: 'ZIP Archives' },
   ];
 
-  const isWorkflow = window.location.pathname.includes('/workflow');
+  const isWorkflow = currentPath.includes('/workflow');
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F9FA] dark:bg-[#0E1013] text-[#1A1A1A] dark:text-[#F3F4F6] selection:bg-red-500 selection:text-white transition-colors">
@@ -173,7 +185,7 @@ export const App: React.FC = () => {
         onOpenOfflineShare={() => setIsOfflineShareOpen(true)}
         onSelectCategory={(cat) => { setSelectedCategory(cat as ILovePdfCategoryId); backToHome(); }}
         currentCategory={selectedCategory}
-        onSelectWorkflowBuilder={() => { setActiveTool(null); window.history.pushState({}, '', '/workflow'); }}
+        onSelectWorkflowBuilder={openWorkflowBuilder}
         onOpenTool={openToolById}
       />
 
@@ -266,6 +278,37 @@ export const App: React.FC = () => {
                       </button>
                     );
                   })}
+                </div>
+
+                {/* Unique Multi-Tool Workflow Studio Callout Banner */}
+                <div className="pt-3 max-w-2xl mx-auto">
+                  <div 
+                    onClick={openWorkflowBuilder}
+                    className="group cursor-pointer p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-rose-950/40 border border-amber-300/80 dark:border-amber-700/60 hover:border-amber-400 dark:hover:border-amber-500 transition-all shadow-xs flex items-center justify-between gap-3 text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                        <Sparkles className="w-5 h-5 animate-pulse" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-extrabold text-[14px] sm:text-[15px] text-stone-900 dark:text-white">
+                            ✨ Visual Drag & Drop Workflow Studio
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-500 text-white">
+                            NEW
+                          </span>
+                        </div>
+                        <p className="text-[12px] sm:text-[13px] text-stone-600 dark:text-stone-300 mt-0.5">
+                          Chain any offline tools into 1-click batch pipelines (e.g. Remove BG ➔ Resize ➔ Compress WebP ➔ ZIP).
+                        </p>
+                      </div>
+                    </div>
+                    <div className="hidden sm:flex items-center gap-1 font-bold text-xs text-amber-700 dark:text-amber-400 shrink-0 group-hover:translate-x-1 transition-transform">
+                      <span>Launch Studio</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
                 </div>
 
               </div>

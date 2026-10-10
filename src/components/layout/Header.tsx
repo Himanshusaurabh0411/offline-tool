@@ -214,6 +214,19 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
+
+          {/* WORKFLOWS STUDIO (Unique chained pipeline builder) */}
+          <button
+            onClick={onSelectWorkflowBuilder}
+            className="px-3.5 py-2 text-[14px] font-black text-amber-800 dark:text-amber-300 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 border border-amber-200/80 dark:border-amber-800 shadow-2xs group"
+            title="Visual Workflow Builder - Chain multiple offline tools into one batch pipeline"
+          >
+            <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 group-hover:rotate-12 transition-transform" />
+            <span>Workflows</span>
+            <span className="text-[10px] font-black uppercase px-1.5 py-0.5 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100">
+              NEW
+            </span>
+          </button>
         </nav>
 
         {/* ── Right Actions: Search + Support + Mode ─────────────────── */}
@@ -286,6 +299,20 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-200/60 dark:bg-teal-800 text-teal-900 dark:text-teal-100">
               Govt Standard
+            </span>
+          </button>
+
+          {/* Workflows Multi-Tool Pipeline */}
+          <button 
+            onClick={() => { onSelectWorkflowBuilder(); setIsMobileOpen(false); }}
+            className="w-full text-left px-4 py-3 rounded-xl font-extrabold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/80 flex items-center justify-between text-[14px] border border-amber-200/80 dark:border-amber-800"
+          >
+            <div className="flex items-center gap-2.5">
+              <Sparkles className="w-4 h-4 text-amber-600" />
+              <span>Multi-Tool Workflow Studio</span>
+            </div>
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-200/60 dark:bg-amber-800 text-amber-900 dark:text-amber-100">
+              Chain Tools
             </span>
           </button>
 
