@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Star, 
   MessageSquare, 
   CheckCircle, 
-  ThumbsUp, 
-  Sparkles, 
-  ShieldCheck, 
   X, 
   Send,
   MessageCircle,
-  Filter
+  Plus
 } from 'lucide-react';
 
 interface Review {
@@ -24,81 +21,17 @@ interface Review {
   isUserSubmission?: boolean;
 }
 
-const DEFAULT_REVIEWS: Review[] = [
-  {
-    id: 'rev-1',
-    name: 'Aarav Patel',
-    role: 'Govt Exam Candidate (UPSC & SSC)',
-    rating: 5,
-    date: '2 days ago',
-    category: 'passport',
-    comment: 'The Passport Photo Maker with exact 50KB size reducer saved my application deadline! Every cyber cafe charges ₹100 just to resize a photo. Did it here in 10 seconds with clean white background.',
-    verified: true,
-  },
-  {
-    id: 'rev-2',
-    name: 'Sarah Jenkins',
-    role: 'Corporate Legal Counsel',
-    rating: 5,
-    date: '3 days ago',
-    category: 'privacy',
-    comment: 'Our client contracts strictly forbid uploading sensitive documents to third-party cloud servers. OfflineToolkit handles 50MB PDF merges and true redaction entirely in browser memory. Unbeatable privacy guarantee.',
-    verified: true,
-  },
-  {
-    id: 'rev-3',
-    name: 'Vikram Mehta',
-    role: 'Chartered Accountant',
-    rating: 5,
-    date: '1 week ago',
-    category: 'pdf',
-    comment: 'Compressing audit reports from 45MB down to 3MB for tax portal submission without quality loss or uploading to sketchy ad-heavy websites. The batch workflow studio is pure magic.',
-    verified: true,
-  },
-  {
-    id: 'rev-4',
-    name: 'Elena Rostova',
-    role: 'Freelance Graphic Designer',
-    rating: 5,
-    date: '1 week ago',
-    category: 'passport',
-    comment: 'The 4x6 print sheet layout for passport photos with biometric guides is genius. I can fit 8 photos on standard photo paper and print it at local chemist for pennies.',
-    verified: true,
-  },
-  {
-    id: 'rev-5',
-    name: 'David Chen',
-    role: 'Software Security Architect',
-    rating: 5,
-    date: '2 weeks ago',
-    category: 'privacy',
-    comment: 'Inspected browser devtools network tab during file processing: strictly 0 outgoing network requests. Everything is compiled WebAssembly and client JavaScript. This is how web privacy should be built.',
-    verified: true,
-  },
-  {
-    id: 'rev-6',
-    name: 'Pooja Deshmukh',
-    role: 'Medical Student & Researcher',
-    rating: 5,
-    date: '2 weeks ago',
-    category: 'pdf',
-    comment: 'Works flawlessly on airplane mode during travel! Combined all my research papers, converted slides to PDF, and stripped metadata without needing WiFi.',
-    verified: true,
-  },
-];
-
 export const ReviewsSection: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>(() => {
     try {
       const stored = localStorage.getItem('offlineforge_user_reviews');
       if (stored) {
-        const parsed = JSON.parse(stored);
-        return [...parsed, ...DEFAULT_REVIEWS];
+        return JSON.parse(stored);
       }
     } catch {
       // fallback
     }
-    return DEFAULT_REVIEWS;
+    return [];
   });
 
   const [activeFilter, setActiveFilter] = useState<'all' | 'passport' | 'privacy' | 'pdf'>('all');
@@ -130,8 +63,7 @@ export const ReviewsSection: React.FC = () => {
     setReviews(updated);
 
     try {
-      const userOnly = updated.filter(r => r.isUserSubmission);
-      localStorage.setItem('offlineforge_user_reviews', JSON.stringify(userOnly));
+      localStorage.setItem('offlineforge_user_reviews', JSON.stringify(updated));
     } catch {
       // ignore
     }
@@ -151,6 +83,10 @@ export const ReviewsSection: React.FC = () => {
     r => activeFilter === 'all' || r.category === activeFilter
   );
 
+  const avgRating = reviews.length > 0 
+    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
+    : null;
+
   return (
     <section className="w-full max-w-full overflow-hidden bg-white dark:bg-[#111317] border-t border-[#E5E7EB] dark:border-slate-800 py-14 sm:py-20 transition-colors">
       <div className="max-w-[1360px] mx-auto px-4 sm:px-8 space-y-10">
@@ -160,30 +96,30 @@ export const ReviewsSection: React.FC = () => {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-bold uppercase tracking-wider">
               <Star className="w-3.5 h-3.5 fill-slate-700 dark:fill-slate-300 text-slate-700 dark:text-slate-300" />
-              <span>User Experiences</span>
+              <span>Community Feedback</span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#E5322D]" />
               <span className="text-slate-600 dark:text-slate-400 font-semibold">100% Client-Side</span>
             </div>
             
             <h2 className="text-2xl sm:text-4xl font-black text-[#111827] dark:text-white tracking-tight">
-              Trusted by Thousands for <span className="text-[#E5322D]">Zero-Leak</span> Processing
+              User Reviews & <span className="text-[#E5322D]">Feedback</span>
             </h2>
             
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed">
-              From competitive exam applicants to corporate legal teams, see how people use OfflineToolkit safely without cloud servers.
+              Help us shape OfflineToolkit. Share your thoughts, report how tools worked for you, or suggest improvements.
             </p>
           </div>
 
           {/* Rating Summary & Write Review Button */}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
               <div className="flex text-amber-500">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-amber-500" />
                 ))}
               </div>
               <span className="text-xs font-black text-slate-800 dark:text-white">
-                4.9 / 5.0 Rating
+                {avgRating ? `${avgRating} / 5.0 (${reviews.length})` : 'Be the first to rate'}
               </span>
             </div>
 
@@ -197,89 +133,103 @@ export const ReviewsSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-          {[
-            { id: 'all', label: 'All Reviews' },
-            { id: 'passport', label: 'Passport & Govt Photos' },
-            { id: 'privacy', label: 'Privacy & Security' },
-            { id: 'pdf', label: 'PDF & File Compression' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveFilter(tab.id as any)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                activeFilter === tab.id
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs'
-                  : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {/* Filter Pills (Shown only when there are reviews) */}
+        {reviews.length > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            {[
+              { id: 'all', label: 'All Reviews' },
+              { id: 'passport', label: 'Passport & Govt Photos' },
+              { id: 'privacy', label: 'Privacy & Security' },
+              { id: 'pdf', label: 'PDF & File Compression' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveFilter(tab.id as any)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  activeFilter === tab.id
+                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
 
-        {/* Reviews Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filteredReviews.map((rev) => (
-            <div
-              key={rev.id}
-              className={`p-5 sm:p-6 rounded-2xl border transition-all flex flex-col justify-between gap-4 ${
-                rev.isUserSubmission
-                  ? 'bg-slate-50 dark:bg-[#16181e] border-slate-300 dark:border-slate-700 shadow-xs'
-                  : 'bg-white dark:bg-[#141518] border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-2xs'
-              }`}
-            >
-              <div className="space-y-3">
-                {/* Header: Stars + Verification badge */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex text-amber-500">
-                    {[...Array(rev.rating)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />
-                    ))}
-                  </div>
-                  
-                  {rev.isUserSubmission ? (
-                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#E5322D] text-white">
-                      Your Review
-                    </span>
-                  ) : (
-                    <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                      <CheckCircle className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Verified Offline</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Comment Text */}
-                <p className="text-[13px] sm:text-[14px] text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
-                  "{rev.comment}"
-                </p>
-              </div>
-
-              {/* Author footer */}
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 truncate">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-slate-200 to-slate-100 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center font-bold text-xs text-slate-700 dark:text-slate-200 shrink-0">
-                    {rev.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="truncate">
-                    <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
-                      {rev.name}
-                    </h4>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                      {rev.role}
-                    </p>
-                  </div>
-                </div>
-
-                <span className="text-[11px] font-medium text-slate-400 shrink-0">
-                  {rev.date}
-                </span>
-              </div>
+        {/* Reviews Grid or Clean Empty State */}
+        {reviews.length === 0 ? (
+          <div className="p-8 sm:p-12 rounded-3xl bg-slate-50 dark:bg-[#141518] border border-dashed border-slate-300 dark:border-slate-800 text-center max-w-xl mx-auto space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center mx-auto text-slate-700 dark:text-slate-300 shadow-2xs">
+              <MessageSquare className="w-6 h-6 text-[#E5322D]" />
             </div>
-          ))}
-        </div>
+            <div>
+              <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">
+                Be the First to Leave a Review
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                No reviews yet. Share your experience using our offline file tools and help others discover private processing.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-5 py-2.5 rounded-xl bg-[#E5322D] hover:bg-[#c92420] text-white font-bold text-xs sm:text-sm inline-flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Write the First Review</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filteredReviews.map((rev) => (
+              <div
+                key={rev.id}
+                className="p-5 sm:p-6 rounded-2xl border transition-all flex flex-col justify-between gap-4 bg-white dark:bg-[#141518] border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-2xs"
+              >
+                <div className="space-y-3">
+                  {/* Header: Stars + Verification badge */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex text-amber-500">
+                      {[...Array(rev.rating)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />
+                      ))}
+                    </div>
+                    
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#E5322D] text-white">
+                      Verified User
+                    </span>
+                  </div>
+
+                  {/* Comment Text */}
+                  <p className="text-[13px] sm:text-[14px] text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
+                    "{rev.comment}"
+                  </p>
+                </div>
+
+                {/* Author footer */}
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 truncate">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-xs text-slate-700 dark:text-slate-200 shrink-0">
+                      {rev.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="truncate">
+                      <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
+                        {rev.name}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                        {rev.role}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="text-[11px] font-medium text-slate-400 shrink-0">
+                    {rev.date}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
       </div>
 
@@ -290,22 +240,22 @@ export const ReviewsSection: React.FC = () => {
             
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950 flex items-center justify-center text-amber-500">
-                  <Star className="w-4 h-4 fill-amber-500" />
+                <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white">
+                  <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
                 </div>
                 <div>
                   <h3 className="font-extrabold text-base text-slate-900 dark:text-white">
                     Share Your Feedback
                   </h3>
                   <p className="text-[11.5px] text-slate-500">
-                    Your review appears immediately on this site
+                    Your review appears immediately on the website
                   </p>
                 </div>
               </div>
 
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500"
+                className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -335,12 +285,12 @@ export const ReviewsSection: React.FC = () => {
                         type="button"
                         key={star}
                         onClick={() => setUserRating(star)}
-                        className="p-1 text-amber-400 hover:scale-110 transition-transform cursor-pointer"
+                        className="p-1 text-amber-500 hover:scale-110 transition-transform cursor-pointer"
                       >
-                        <Star className={`w-6 h-6 ${star <= userRating ? 'fill-amber-400' : 'text-slate-300 dark:text-slate-700'}`} />
+                        <Star className={`w-6 h-6 ${star <= userRating ? 'fill-amber-500' : 'text-slate-300 dark:text-slate-700'}`} />
                       </button>
                     ))}
-                    <span className="text-xs font-black text-amber-600 dark:text-amber-400 ml-2">
+                    <span className="text-xs font-black text-slate-900 dark:text-white ml-2">
                       {userRating}.0 / 5.0
                     </span>
                   </div>
@@ -370,7 +320,7 @@ export const ReviewsSection: React.FC = () => {
                       type="text"
                       value={userRole}
                       onChange={(e) => setUserRole(e.target.value)}
-                      placeholder="e.g. UPSC Student, Lawyer, Designer"
+                      placeholder="e.g. Student, Lawyer, Designer"
                       className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-[#E5322D]"
                     />
                   </div>
@@ -419,7 +369,7 @@ export const ReviewsSection: React.FC = () => {
 
                   <a
                     href={`https://wa.me/919318375856?text=${encodeURIComponent(
-                      `Hi Himanshu! Loved OfflineToolkit. Here is my review: "${userComment || 'Great tool!'}" - ${userName || 'User'}`
+                      `Hi Himanshu! Here is my review for OfflineToolkit: "${userComment || 'Great tool!'}" - ${userName || 'User'}`
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
