@@ -18,6 +18,7 @@ import { PrivacyPanel } from './components/privacy/PrivacyPanel';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { ILovePdfToolView } from './components/ilovepdf/ILovePdfToolView';
 import { WorkflowBuilder } from './components/workflows/WorkflowBuilder';
+import { ReviewsSection } from './components/reviews/ReviewsSection';
 import { OfflineShareModal } from './components/p2p/OfflineShareModal';
 import { pluginRegistry } from './core/plugins/registry';
 import { ToolPlugin } from './core/plugins/types';
@@ -404,6 +405,9 @@ export const App: React.FC = () => {
               )}
 
             </div>
+
+            {/* Real User Reviews & Community Feedback Section */}
+            <ReviewsSection />
           </>
         )}
       </main>
