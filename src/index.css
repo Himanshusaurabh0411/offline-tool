@@ -10,41 +10,41 @@
   }
 
   body {
-    background-color: #F9FAFB;
-    color: #111827;
+    background-color: #F8F9FA;
+    color: #1A1A1A;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 15px;
+    line-height: 1.6;
     overflow-x: hidden;
   }
 
   .dark body {
-    background-color: #0B0C0E;
+    background-color: #0E1013;
     color: #F3F4F6;
   }
 }
 
 /* ── Refined Clean Scrollbar ─────────────────────────────────────────── */
 ::-webkit-scrollbar { 
-  width: 6px; 
-  height: 6px; 
+  width: 7px; 
+  height: 7px; 
 }
 ::-webkit-scrollbar-track { 
   background: transparent; 
 }
 ::-webkit-scrollbar-thumb { 
-  background: #D1D5DB; 
+  background: #CBD5E1; 
   border-radius: 9999px; 
 }
 ::-webkit-scrollbar-thumb:hover { 
-  background: #9CA3AF; 
+  background: #94A3B8; 
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #374151;
+  background: #334155;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #4B5563;
+  background: #475569;
 }
 
 .scrollbar-none {
@@ -56,12 +56,12 @@
 }
 
 /* ── Focus ring accessibility ────────────────────────────────────────── */
-button:focus-visible, a:focus-visible {
-  outline: 2px solid #111827;
+button:focus-visible, a:focus-visible, input:focus-visible {
+  outline: 2px solid #E5322D;
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
-.dark button:focus-visible, .dark a:focus-visible {
-  outline-color: #F9FAFB;
+.dark button:focus-visible, .dark a:focus-visible, .dark input:focus-visible {
+  outline-color: #F87171;
 }

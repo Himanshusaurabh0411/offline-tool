@@ -4,13 +4,13 @@ import {
   Star, 
   ArrowRight, 
   ShieldCheck, 
-  Cpu, 
-  HardDrive, 
   Sparkles,
   Camera,
+  CheckCircle2,
+  Lock,
   Layers,
-  FileCheck,
-  CheckCircle2
+  FileType,
+  Scissors
 } from 'lucide-react';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
@@ -148,25 +148,25 @@ export const App: React.FC = () => {
       return 0;
     });
 
-  // Natural humanized categories
+  // Natural humanized categories with readable font sizing
   const categoryTabs: { id: ILovePdfCategoryId; label: string }[] = [
     { id: 'all', label: 'All Tools' },
     { id: 'photos', label: 'Passport & Photos' },
     { id: 'organize', label: 'Organize PDF' },
-    { id: 'optimize', label: 'Compress & Optimize' },
+    { id: 'optimize', label: 'Compress PDF' },
     { id: 'to-pdf', label: 'Convert to PDF' },
     { id: 'from-pdf', label: 'Convert from PDF' },
-    { id: 'edit', label: 'Edit & Watermark' },
-    { id: 'security', label: 'Security & Sign' },
+    { id: 'edit', label: 'Edit PDF' },
+    { id: 'security', label: 'PDF Security' },
     { id: 'dev', label: 'Dev Utilities' },
     { id: 'docs', label: 'Office Docs' },
-    { id: 'archives', label: 'ZIP & Files' },
+    { id: 'archives', label: 'ZIP Archives' },
   ];
 
   const isWorkflow = window.location.pathname.includes('/workflow');
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F9FAFB] dark:bg-[#0B0C0E] text-[#111827] dark:text-[#F3F4F6] selection:bg-red-500 selection:text-white transition-colors">
+    <div className="min-h-screen flex flex-col bg-[#F8F9FA] dark:bg-[#0E1013] text-[#1A1A1A] dark:text-[#F3F4F6] selection:bg-red-500 selection:text-white transition-colors">
       <Header
         onOpenPrivacyPanel={() => setIsPrivacyOpen(true)}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
@@ -193,57 +193,57 @@ export const App: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* ── Hero Section: Professional, Clean, Purpose-Driven ─── */}
-            <section className="bg-white dark:bg-[#111215] border-b border-[#E5E7EB] dark:border-slate-800 pt-16 pb-14">
+            {/* ── Hero Section: Friendly, High-Clarity Header ────────── */}
+            <section className="bg-white dark:bg-[#111317] border-b border-[#E5E7EB] dark:border-slate-800 pt-16 pb-14">
               <div className="max-w-4xl mx-auto px-5 sm:px-8 text-center space-y-6">
                 
                 {/* Genuine architecture trust indicator */}
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-[12px] font-semibold text-slate-700 dark:text-slate-300 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Runs 100% locally on your device via WebAssembly</span>
-                  <span className="text-slate-300 dark:text-slate-600">•</span>
-                  <span className="text-slate-500 dark:text-slate-400">Zero file uploads</span>
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800 text-[13.5px] font-bold text-emerald-800 dark:text-emerald-300 shadow-2xs">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>100% In-Browser & Private</span>
+                  <span className="text-emerald-300 dark:text-emerald-700">•</span>
+                  <span>Files never leave your computer</span>
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#111827] dark:text-white tracking-tight leading-[1.15]">
-                  Every tool you need to work with files,{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-500">
-                    privately in your browser.
+                <h1 className="text-3xl sm:text-5xl md:text-5xl font-black text-[#111827] dark:text-white tracking-tight leading-[1.2]">
+                  Every tool you need to work with PDFs & Photos,{' '}
+                  <span className="text-[#E5322D]">
+                    in one place.
                   </span>
                 </h1>
 
-                <p className="text-base sm:text-lg text-[#4B5563] dark:text-slate-400 max-w-2xl mx-auto leading-relaxed font-normal">
-                  Convert PDFs, generate official passport photos, compress to custom government file size limits, and edit documents without exposing personal data to any server.
+                <p className="text-[17px] sm:text-[19px] text-[#4B5563] dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
+                  Free, fast, and completely private. Merge, split, compress PDFs, or create instant passport photos for government job forms right in your browser.
                 </p>
 
-                {/* Practical Search & Quick Filters Container */}
+                {/* Practical Search Box with Large Clear Input */}
                 <div className="pt-2 max-w-xl mx-auto">
                   <div className="relative flex items-center">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-4 pointer-events-none" />
+                    <Search className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search any tool (e.g., passport photo, merge pdf, reduce kb, sign)..."
-                      className="w-full h-12 bg-[#F9FAFB] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl pl-11 pr-24 text-[14px] text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 transition-all shadow-xs"
+                      placeholder="Search tools (e.g., merge pdf, passport photo, compress to 50kb)..."
+                      className="w-full h-14 bg-[#F8F9FA] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-2xl pl-12 pr-24 text-[16px] font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#E5322D] dark:focus:border-[#E5322D] transition-all shadow-xs"
                     />
                     {searchQuery ? (
                       <button
                         onClick={() => setSearchQuery('')}
-                        className="absolute right-3 text-xs font-semibold px-2 py-1 bg-slate-200 dark:bg-slate-800 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-300 transition-colors"
+                        className="absolute right-3.5 text-xs font-bold px-2.5 py-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-300 transition-colors"
                       >
                         Clear
                       </button>
                     ) : (
-                      <div className="absolute right-3 hidden sm:flex items-center gap-1">
-                        <kbd className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded">⌘K</kbd>
+                      <div className="absolute right-3.5 hidden sm:flex items-center gap-1">
+                        <kbd className="px-2 py-1 text-[11px] font-mono text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md">⌘K</kbd>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Humanized Category Tabs */}
-                <div className="pt-4 flex items-center justify-center flex-wrap gap-1.5">
+                {/* Clean, Readable Category Pills */}
+                <div className="pt-4 flex items-center justify-center flex-wrap gap-2">
                   {categoryTabs.map((tab) => {
                     const isActive = selectedCategory === tab.id;
                     return (
@@ -251,11 +251,11 @@ export const App: React.FC = () => {
                         key={tab.id}
                         onClick={() => setSelectedCategory(tab.id)}
                         className={`
-                          px-3.5 py-1.5 rounded-lg text-[13px] font-semibold
+                          px-4 py-2 rounded-xl text-[14.5px] font-bold
                           transition-all duration-150 cursor-pointer whitespace-nowrap
                           ${isActive
-                            ? 'bg-[#111827] dark:bg-white text-white dark:text-[#111827] shadow-xs'
-                            : 'bg-white dark:bg-slate-900/60 text-[#4B5563] dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white'
+                            ? 'bg-[#E5322D] text-white shadow-sm shadow-red-500/20'
+                            : 'bg-white dark:bg-slate-900 text-[#4B5563] dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-white'
                           }
                         `}
                       >
@@ -269,72 +269,44 @@ export const App: React.FC = () => {
             </section>
 
             {/* ── Main Workspace Body ──────────────────────────────────── */}
-            <div className="max-w-[1360px] mx-auto px-5 sm:px-8 py-10">
-
-              {/* Dynamic Recently Used Tools Bar */}
-              {recentToolIds.length > 0 && searchQuery === '' && selectedCategory === 'all' && (
-                <div className="mb-8 p-3.5 rounded-xl bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 shadow-2xs flex items-center justify-between flex-wrap gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-slate-900 dark:bg-white" />
-                    <span className="text-[12px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                      Recent Tasks
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 overflow-x-auto">
-                    {recentToolIds.slice(0, 5).map(id => {
-                      const tool = pluginRegistry.get(id);
-                      if (!tool) return null;
-                      return (
-                        <button
-                          key={id}
-                          onClick={() => openTool(tool)}
-                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-[12px] font-semibold text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700 transition-colors cursor-pointer"
-                        >
-                          <ILovePdfToolIcon toolId={tool.id} size={16} />
-                          <span>{tool.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+            <div className="max-w-[1360px] mx-auto px-5 sm:px-8 py-12">
 
               {/* Tools Counter & Active Filter Status */}
-              <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-200/80 dark:border-slate-800">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  <span>Showing {filteredTools.length} {filteredTools.length === 1 ? 'tool' : 'tools'}</span>
+              <div className="flex items-center justify-between mb-8 pb-3 border-b border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-2.5 text-[14px] font-bold text-slate-600 dark:text-slate-400">
+                  <span>Available Tools ({filteredTools.length})</span>
                   {selectedCategory !== 'all' && (
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                      Filtered by: {categoryTabs.find(c => c.id === selectedCategory)?.label}
+                    <span className="px-2.5 py-0.5 rounded-md bg-red-50 dark:bg-red-950/60 text-[#E5322D] font-bold text-xs border border-red-200/60 dark:border-red-900">
+                      Showing: {categoryTabs.find(c => c.id === selectedCategory)?.label}
                     </span>
                   )}
                 </div>
                 {selectedCategory !== 'all' && (
                   <button 
                     onClick={() => setSelectedCategory('all')} 
-                    className="text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white cursor-pointer underline"
+                    className="text-xs font-bold text-[#E5322D] hover:underline cursor-pointer"
                   >
-                    Reset Filter
+                    View All Tools
                   </button>
                 )}
               </div>
 
               {filteredTools.length === 0 ? (
-                <div className="text-center py-24 bg-white dark:bg-[#141518] rounded-2xl border border-dashed border-slate-300 dark:border-slate-800">
+                <div className="text-center py-20 bg-white dark:bg-[#141518] rounded-2xl border border-dashed border-slate-300 dark:border-slate-800">
                   <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-400">
                     <Search className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">No tools found</h3>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">No tools found</h3>
                   <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">
-                    No tool matched "{searchQuery.trim()}". Try searching for "passport", "compress", or "merge".
+                    No tools matched "{searchQuery.trim()}". Try searching for "merge", "compress", or "passport".
                   </p>
-                  <button onClick={() => setSearchQuery('')} className="mt-4 px-4 py-2 text-xs font-bold bg-slate-900 text-white rounded-lg hover:bg-slate-800 cursor-pointer">
-                    Clear Search Query
+                  <button onClick={() => setSearchQuery('')} className="mt-4 px-4 py-2 text-xs font-bold bg-[#E5322D] text-white rounded-xl hover:bg-red-700 cursor-pointer">
+                    Clear Search
                   </button>
                 </div>
               ) : (
-                /* Authentic iLovePDF Responsive Grid (up to 6 columns) */
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                /* Authentic iLovePDF Responsive 6-Column Grid */
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-5">
                   {filteredTools.map((tool) => {
                     const isFav = favorites.includes(tool.id);
                     return (
@@ -343,51 +315,51 @@ export const App: React.FC = () => {
                         onClick={() => openTool(tool)}
                         className="
                           group relative bg-white dark:bg-[#141518]
-                          border border-[#E5E7EB] dark:border-slate-800
-                          hover:border-[#D1D5DB] dark:hover:border-slate-600
+                          border-2 border-transparent hover:border-[#E5322D]
+                          shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-xl
                           rounded-2xl p-5
                           cursor-pointer
                           transition-all duration-200
-                          hover:shadow-lg hover:-translate-y-1
+                          hover:-translate-y-1.5
                           flex flex-col justify-between
-                          min-h-[168px] select-none
+                          min-h-[185px] select-none
                         "
                       >
                         <div>
-                          {/* Top row: Authentic iLovePDF Icon + Favorite Star */}
-                          <div className="flex items-start justify-between mb-3.5">
+                          {/* Top row: Authentic iLovePDF Icon + Star */}
+                          <div className="flex items-start justify-between mb-4">
                             <div className="transition-transform group-hover:scale-105">
-                              <ILovePdfToolIcon toolId={tool.id} size={42} />
+                              <ILovePdfToolIcon toolId={tool.id} size={48} />
                             </div>
                             <button
                               onClick={(e) => toggleFavorite(tool.id, e)}
-                              className={`p-1 rounded-md text-slate-300 hover:text-amber-400 transition-colors ${
+                              className={`p-1.5 rounded-lg text-slate-300 hover:text-amber-400 transition-colors ${
                                 isFav ? '!text-amber-400 opacity-100' : 'opacity-0 group-hover:opacity-100'
                               }`}
                               title="Star favorite tool"
                             >
-                              <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-amber-400' : ''}`} />
+                              <Star className={`w-4 h-4 ${isFav ? 'fill-amber-400' : ''}`} />
                             </button>
                           </div>
 
-                          {/* Tool Name */}
-                          <h3 className="font-extrabold text-[15px] text-[#1F2937] dark:text-white leading-snug group-hover:text-[#E5322D] transition-colors">
+                          {/* Tool Name - Larger, bold font */}
+                          <h3 className="font-extrabold text-[16px] text-[#111827] dark:text-white leading-snug group-hover:text-[#E5322D] transition-colors">
                             {tool.name}
                           </h3>
 
-                          {/* Tool Description */}
-                          <p className="text-[12px] text-[#6B7280] dark:text-slate-400 mt-1.5 leading-relaxed line-clamp-2">
+                          {/* Tool Description - Readable, gentle gray */}
+                          <p className="text-[13px] text-[#6B7280] dark:text-slate-400 mt-2 leading-relaxed line-clamp-2">
                             {tool.description}
                           </p>
                         </div>
 
-                        {/* Extension format chips */}
-                        <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-semibold text-slate-400">
-                          <span className="truncate max-w-[130px] font-mono text-[10px] text-slate-400">
+                        {/* Format extension tag */}
+                        <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-semibold text-slate-400">
+                          <span className="truncate max-w-[120px] font-mono text-[11px] text-slate-400">
                             {tool.acceptedExtensions.slice(0, 3).map(e => `.${e}`).join(' ')}
                           </span>
-                          <span className="text-[#E5322D] opacity-0 group-hover:opacity-100 transition-opacity font-bold text-[11px]">
-                            Open →
+                          <span className="text-[#E5322D] font-bold text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                            Use Tool →
                           </span>
                         </div>
                       </div>
@@ -396,45 +368,45 @@ export const App: React.FC = () => {
                 </div>
               )}
 
-              {/* ── Practical Hardware & Privacy Facts Strip ─────────── */}
-              <div className="mt-16 pt-12 border-t border-slate-200 dark:border-slate-800">
+              {/* ── 3-Step Simple How It Works Banner for New Users ─── */}
+              <div className="mt-20 pt-14 border-t border-slate-200 dark:border-slate-800">
                 <div className="text-center max-w-xl mx-auto mb-10">
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                    Engineered for high security and offline privacy
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white">
+                    How it works in 3 easy steps
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-                    Unlike ordinary cloud tools, Offline Toolkit performs heavy operations natively in your browser thread.
+                  <p className="text-[14.5px] text-slate-500 dark:text-slate-400 mt-1.5">
+                    No sign-up, no software installation, and no file uploads required.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="p-5 rounded-xl bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 shadow-2xs space-y-2">
-                    <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                      <ShieldCheck className="w-5 h-5" />
+                  <div className="p-6 rounded-2xl bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 shadow-xs space-y-2.5 text-center">
+                    <div className="w-12 h-12 rounded-xl bg-red-50 text-[#E5322D] font-black text-lg flex items-center justify-center mx-auto">
+                      1
                     </div>
-                    <h4 className="text-[14px] font-bold text-slate-900 dark:text-white">True Zero-Telemetry</h4>
-                    <p className="text-[12px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                      Your identity cards, bank statements, and biometric photos remain solely in your device memory. Disconnect your Wi-Fi and every tool continues running flawlessly.
+                    <h4 className="text-[16px] font-bold text-slate-900 dark:text-white">Choose a Tool</h4>
+                    <p className="text-[13.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      Select any tool from the grid above, such as Merge PDF, Passport Photo Maker, or Compress.
                     </p>
                   </div>
 
-                  <div className="p-5 rounded-xl bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 shadow-2xs space-y-2">
-                    <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                      <Cpu className="w-5 h-5" />
+                  <div className="p-6 rounded-2xl bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 shadow-xs space-y-2.5 text-center">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 font-black text-lg flex items-center justify-center mx-auto">
+                      2
                     </div>
-                    <h4 className="text-[14px] font-bold text-slate-900 dark:text-white">WebAssembly Powered</h4>
-                    <p className="text-[12px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                      Using compiled WebAssembly engines (`pdf-lib`, `pdf.js`, canvas quantization, and Web Workers), file parsing executes at near-native C/C++ computational speeds.
+                    <h4 className="text-[16px] font-bold text-slate-900 dark:text-white">Pick or Drop Files</h4>
+                    <p className="text-[13.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      Click the big select button or drop your file. Files stay entirely in your browser RAM.
                     </p>
                   </div>
 
-                  <div className="p-5 rounded-xl bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 shadow-2xs space-y-2">
-                    <div className="w-9 h-9 rounded-lg bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                      <HardDrive className="w-5 h-5" />
+                  <div className="p-6 rounded-2xl bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 shadow-xs space-y-2.5 text-center">
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 font-black text-lg flex items-center justify-center mx-auto">
+                      3
                     </div>
-                    <h4 className="text-[14px] font-bold text-slate-900 dark:text-white">No File Size Restrictions</h4>
-                    <p className="text-[12px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                      Process 100MB+ architectural drawings and 500-page scanned documents without encountering upload throttles or paywall blockers.
+                    <h4 className="text-[16px] font-bold text-slate-900 dark:text-white">Instant Download</h4>
+                    <p className="text-[13.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      Your files convert in seconds. Click download to save your new file immediately.
                     </p>
                   </div>
                 </div>
