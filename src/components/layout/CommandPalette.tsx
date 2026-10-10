@@ -1,23 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, ArrowRight, FileText, Image, Film, Archive, Terminal, FileCode } from 'lucide-react';
+import { Search, X, ArrowRight, FileText, Image, Film, Archive, Terminal, FileCode, Camera } from 'lucide-react';
 import { pluginRegistry } from '../../core/plugins/registry';
 import { ToolPlugin, ToolCategory } from '../../core/plugins/types';
 import { useI18n } from '../../i18n';
+import { ILovePdfToolIcon } from '../common/ILovePdfIcons';
 
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectTool: (tool: ToolPlugin) => void;
 }
-
-const categoryIcons: Record<ToolCategory, React.ReactNode> = {
-  pdf: <FileText className="w-4 h-4 text-red-400" />,
-  documents: <FileCode className="w-4 h-4 text-blue-400" />,
-  images: <Image className="w-4 h-4 text-emerald-400" />,
-  media: <Film className="w-4 h-4 text-purple-400" />,
-  archives: <Archive className="w-4 h-4 text-amber-400" />,
-  dev: <Terminal className="w-4 h-4 text-cyan-400" />,
-};
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, onSelectTool }) => {
   const { t } = useI18n();
@@ -66,10 +58,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/30 backdrop-blur-xs flex items-start justify-center pt-20 p-4">
-      <div className="w-full max-w-2xl bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
-        {/* Search input bar */}
-        <div className="flex items-center px-4 py-3 border-b border-slate-200 bg-white">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-xs flex items-start justify-center pt-24 p-4 animate-in fade-in duration-150">
+      <div className="w-full max-w-2xl bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+        
+        {/* Search Input Bar */}
+        <div className="flex items-center px-4 py-3.5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#141518]">
           <Search className="w-4 h-4 text-slate-400 shrink-0 mr-3" />
           <input
             ref={inputRef}
@@ -79,63 +72,72 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
               setQuery(e.target.value);
               setSelectedIndex(0);
             }}
-            placeholder={t('search.placeholder')}
-            className="w-full bg-transparent text-sm text-slate-900 placeholder-slate-400 focus:outline-none"
+            placeholder="Search tools by name, format, or task (e.g. passport, merge, compress)..."
+            className="w-full bg-transparent text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
           />
-          <kbd className="px-1.5 py-0.5 text-[10px] font-mono text-slate-500 bg-slate-100 border border-slate-200 rounded shrink-0">
+          <kbd className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shrink-0">
             ESC
           </kbd>
         </div>
 
-        {/* Results listing */}
-        <div className="max-h-96 overflow-y-auto p-1.5 space-y-0.5">
+        {/* Results Listing */}
+        <div className="max-h-96 overflow-y-auto p-2 space-y-1">
           {tools.length === 0 ? (
             <div className="py-12 text-center text-slate-400 text-sm">
-              {t('search.no_results')} "{query}"
+              No tools matching "{query}"
             </div>
           ) : (
-            tools.map((tool, idx) => (
-              <div
-                key={tool.id}
-                onClick={() => {
-                  onSelectTool(tool);
-                  onClose();
-                }}
-                className={`flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors ${
-                  selectedIndex === idx
-                    ? 'bg-slate-100 text-slate-900'
-                    : 'text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-1.5 rounded-md bg-white border border-slate-200 shadow-2xs">
-                    {categoryIcons[tool.category] || <FileText className="w-4 h-4 text-slate-500" />}
-                  </div>
-                  <div>
-                    <div className="font-medium text-xs text-slate-900 flex items-center gap-2">
-                      {tool.name}
-                      <span className="text-[9px] uppercase font-semibold tracking-wider px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                        {tool.category}
-                      </span>
+            tools.map((tool, idx) => {
+              const isSelected = idx === selectedIndex;
+              return (
+                <div
+                  key={tool.id}
+                  onClick={() => {
+                    onSelectTool(tool);
+                    onClose();
+                  }}
+                  onMouseEnter={() => setSelectedIndex(idx)}
+                  className={`
+                    w-full flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors
+                    ${isSelected 
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white' 
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                    }
+                  `}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center shrink-0">
+                      <ILovePdfToolIcon toolId={tool.id} size={18} />
                     </div>
-                    <div className="text-[11px] text-slate-500 line-clamp-1">{tool.description}</div>
+                    <div className="truncate">
+                      <div className="text-sm font-semibold truncate flex items-center gap-2">
+                        <span>{tool.name}</span>
+                        <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 bg-slate-200/60 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded">
+                          {tool.category}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                        {tool.description}
+                      </div>
+                    </div>
                   </div>
+
+                  <ArrowRight className={`w-4 h-4 shrink-0 transition-opacity ${isSelected ? 'opacity-100 text-slate-900 dark:text-white' : 'opacity-0'}`} />
                 </div>
-                <ArrowRight className={`w-3.5 h-3.5 ${selectedIndex === idx ? 'text-slate-900' : 'text-slate-300'}`} />
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
-        {/* Footer shortcuts */}
-        <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+        {/* Footer shortcuts hint */}
+        <div className="px-4 py-2.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between text-[11px] text-slate-400">
           <div className="flex items-center gap-3">
-            <span>↑↓ Navigate</span>
-            <span>↵ Select</span>
-            <span>ESC Close</span>
+            <span><kbd className="font-mono">↑↓</kbd> to navigate</span>
+            <span><kbd className="font-mono">↵</kbd> to select</span>
           </div>
-          <span>OfflineForge Quick Launcher</span>
+          <span>Offline Toolkit Quick Launcher</span>
         </div>
+
       </div>
     </div>
   );

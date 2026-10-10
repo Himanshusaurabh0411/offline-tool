@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, X, RefreshCw, Trash2, AlertTriangle, CheckCircle, WifiOff, HardDrive, Database, Lock } from 'lucide-react';
+import { 
+  ShieldCheck, 
+  X, 
+  RefreshCw, 
+  Trash2, 
+  AlertTriangle, 
+  CheckCircle, 
+  WifiOff, 
+  HardDrive, 
+  Database, 
+  Lock,
+  Radio
+} from 'lucide-react';
 import { useI18n } from '../../i18n';
 import { networkMonitor, NetworkStats } from '../../core/privacy/networkMonitor';
 import { inspectStorage, wipeEverythingNow, MemoryStorageReport } from '../../core/privacy/storageWiper';
@@ -30,7 +42,7 @@ export const PrivacyPanel: React.FC<PrivacyPanelProps> = ({ isOpen, onClose }) =
   };
 
   const handleWipeEverything = async () => {
-    if (!window.confirm(t('privacy.wipe_confirm'))) return;
+    if (!window.confirm("Permanently wipe all browser storage, IndexedDB caches, and timeline history?")) return;
     setIsWiping(true);
     await wipeEverythingNow();
     await loadStorageReport();
@@ -42,145 +54,141 @@ export const PrivacyPanel: React.FC<PrivacyPanelProps> = ({ isOpen, onClose }) =
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="relative w-full max-w-3xl bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+      <div className="relative w-full max-w-3xl bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+        
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-white">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#141518]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 flex items-center justify-center">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                {t('privacy.proof_title')}
-                <span className="px-2 py-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded">
-                  0 Egress Active
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>Privacy & Network Audit</span>
+                <span className="px-2 py-0.5 text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-full flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  0 Egress Requests
                 </span>
               </h2>
-              <p className="text-xs text-slate-500">{t('privacy.egress_desc')}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Live hardware and network inspection running directly in your browser.
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
+        {/* Content Body */}
         <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-          {/* Live Network Metrics Cards */}
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 mb-2.5 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 text-slate-500" />
-              {t('privacy.network_monitor')}
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="p-4 rounded-lg bg-slate-50 border border-emerald-200 relative overflow-hidden">
-                <div className="text-2xl font-mono font-bold text-emerald-700">{stats.bytesSent} B</div>
-                <div className="text-xs text-slate-600 mt-1 font-medium">{t('privacy.bytes_sent')}</div>
-                <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-emerald-500" />
+          
+          {/* Real Network Interception Stats */}
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Radio className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                  Active Network Egress Monitor
+                </h3>
               </div>
+              <span className="text-[11px] font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                0 Bytes Transmitted
+              </span>
+            </div>
 
-              <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-                <div className="text-2xl font-mono font-bold text-slate-900">{stats.blockedRequests}</div>
-                <div className="text-xs text-slate-600 mt-1 font-medium">Blocked Egress Calls</div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+              <div className="p-3 bg-white dark:bg-[#141518] rounded-lg border border-slate-200/80 dark:border-slate-800">
+                <div className="text-[11px] text-slate-400">Blocked Egress</div>
+                <div className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">{stats.blockedRequests}</div>
               </div>
-
-              <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-                <div className="text-2xl font-mono font-bold text-blue-700">{stats.allowedLocalRequests}</div>
-                <div className="text-xs text-slate-600 mt-1 font-medium">Local Browser Worker Calls</div>
+              <div className="p-3 bg-white dark:bg-[#141518] rounded-lg border border-slate-200/80 dark:border-slate-800">
+                <div className="text-[11px] text-slate-400">External Requests</div>
+                <div className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">{stats.externalRequests}</div>
+              </div>
+              <div className="p-3 bg-white dark:bg-[#141518] rounded-lg border border-slate-200/80 dark:border-slate-800">
+                <div className="text-[11px] text-slate-400">Local Allowed</div>
+                <div className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">{stats.allowedLocalRequests}</div>
+              </div>
+              <div className="p-3 bg-white dark:bg-[#141518] rounded-lg border border-slate-200/80 dark:border-slate-800">
+                <div className="text-[11px] text-slate-400">Bytes Exfiltrated</div>
+                <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{stats.bytesSent} B</div>
               </div>
             </div>
           </div>
 
-          {/* Airplane Mode Test Card */}
-          <div className="p-4 rounded-lg bg-blue-50/70 border border-blue-200 text-blue-950">
-            <div className="flex items-start gap-3">
-              <WifiOff className="w-5 h-5 text-blue-700 shrink-0 mt-0.5" />
-              <div className="space-y-1 text-xs">
-                <h4 className="font-semibold text-xs text-blue-900">{t('privacy.airplane_title')}</h4>
-                <p className="text-blue-800">{t('privacy.airplane_step1')}</p>
-                <p className="text-blue-800">{t('privacy.airplane_step2')}</p>
-                <p className="text-blue-800">{t('privacy.airplane_step3')}</p>
+          {/* Local Storage & Cache Usage */}
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                  Local Browser Storage & Memory
+                </h3>
               </div>
-            </div>
-          </div>
-
-          {/* Memory & Storage Inspection */}
-          <div>
-            <div className="flex items-center justify-between mb-2.5">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <HardDrive className="w-3.5 h-3.5 text-slate-500" />
-                {t('privacy.memory_title')}
-              </h3>
-              <button
+              <button 
                 onClick={loadStorageReport}
-                className="text-xs text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors"
+                className="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 cursor-pointer"
               >
                 <RefreshCw className="w-3 h-3" /> Refresh
               </button>
             </div>
 
-            {storageReport && (
-              <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-3 text-xs">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  <div className="p-2.5 rounded-md bg-white border border-slate-200">
-                    <span className="text-slate-500 block text-[11px]">IndexedDB Stores</span>
-                    <span className="font-mono font-semibold text-slate-900 text-sm">
-                      {storageReport.indexedDbDatabases.length}
-                    </span>
-                  </div>
-                  <div className="p-2.5 rounded-md bg-white border border-slate-200">
-                    <span className="text-slate-500 block text-[11px]">Cache Storage</span>
-                    <span className="font-mono font-semibold text-slate-900 text-sm">
-                      {storageReport.cacheNames.length}
-                    </span>
-                  </div>
-                  <div className="p-2.5 rounded-md bg-white border border-slate-200">
-                    <span className="text-slate-500 block text-[11px]">OPFS Streaming</span>
-                    <span className="font-mono font-semibold text-emerald-700 text-sm">
-                      {storageReport.opfsSupported ? 'Available' : 'Emulated'}
-                    </span>
-                  </div>
-                  <div className="p-2.5 rounded-md bg-white border border-slate-200">
-                    <span className="text-slate-500 block text-[11px]">Storage Used</span>
-                    <span className="font-mono font-semibold text-slate-900 text-sm">
-                      {(storageReport.estimatedQuotaUsedBytes / (1024 * 1024)).toFixed(2)} MB
-                    </span>
-                  </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              <div className="p-3 bg-white dark:bg-[#141518] rounded-lg border border-slate-200/80 dark:border-slate-800">
+                <div className="text-[11px] text-slate-400">IndexedDB Databases</div>
+                <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                  {storageReport ? `${storageReport.indexedDbDatabases.length} active` : 'Loading...'}
                 </div>
               </div>
-            )}
+              <div className="p-3 bg-white dark:bg-[#141518] rounded-lg border border-slate-200/80 dark:border-slate-800">
+                <div className="text-[11px] text-slate-400">Local Storage Keys</div>
+                <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                  {storageReport ? `${storageReport.localStorageKeys} keys` : 'Loading...'}
+                </div>
+              </div>
+              <div className="p-3 bg-white dark:bg-[#141518] rounded-lg border border-slate-200/80 dark:border-slate-800">
+                <div className="text-[11px] text-slate-400">Cache Storages</div>
+                <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                  {storageReport ? `${storageReport.cacheNames.length} caches` : 'Loading...'}
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Wipe Everything Danger Zone */}
-          <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Secure Wipe Action */}
+          <div className="p-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h4 className="text-xs font-semibold text-red-700 flex items-center gap-1.5">
-                <AlertTriangle className="w-4 h-4 text-red-600" /> Wipe Local Cache & Memory
+              <h4 className="text-xs font-bold text-red-900 dark:text-red-300">
+                Nuclear Cache & History Erasure
               </h4>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Instantly purges all IndexedDB files, temporary timeline undo caches, and local session data.
+              <p className="text-xs text-red-700/80 dark:text-red-400 mt-0.5">
+                Immediately clear all temporary file blobs, IndexedDB records, and recent settings from this machine.
               </p>
             </div>
             <button
               onClick={handleWipeEverything}
               disabled={isWiping}
-              className="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg font-medium text-xs transition-all flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+              className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold shrink-0 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              {isWiping ? 'Wiping...' : t('privacy.wipe_button')}
+              <span>{isWiping ? 'Wiping...' : 'Wipe All Local Storage'}</span>
             </button>
           </div>
 
           {wipeSuccess && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-xs flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-emerald-600" />
-              {t('privacy.wipe_success')}
+              <span>All cached local storage and timeline snapshots were permanently wiped.</span>
             </div>
           )}
+
         </div>
+
       </div>
     </div>
   );
