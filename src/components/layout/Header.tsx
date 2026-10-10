@@ -95,23 +95,23 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-[#0E1013]/95 backdrop-blur-md border-b border-[#E5E7EB] dark:border-slate-800 transition-colors">
-      <div className="max-w-[1360px] mx-auto px-5 sm:px-8 h-[68px] flex items-center justify-between gap-4">
+      <div className="max-w-[1360px] mx-auto px-3.5 sm:px-8 h-[60px] sm:h-[68px] flex items-center justify-between gap-2 sm:gap-4">
 
         {/* ── Brand Logo: Offline Toolkit ────────────────────────────── */}
         <div
-          className="flex items-center gap-2.5 cursor-pointer select-none shrink-0 group"
+          className="flex items-center gap-2 cursor-pointer select-none shrink-0 group"
           onClick={() => onSelectCategory('all')}
           title="Offline Toolkit"
         >
-          <div className="w-9 h-9 rounded-lg bg-[#E5322D] flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#E5322D] flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <polyline points="14 2 14 8 20 8" />
               <path d="M12 18v-5" />
               <polyline points="9 15 12 18 15 15" />
             </svg>
           </div>
-          <span className="font-black text-[22px] tracking-tight text-[#111827] dark:text-white">
+          <span className="font-black text-[18px] sm:text-[22px] tracking-tight text-[#111827] dark:text-white">
             Offline<span className="text-[#E5322D]">Toolkit</span>
           </span>
         </div>
@@ -230,16 +230,16 @@ export const Header: React.FC<HeaderProps> = ({
         </nav>
 
         {/* ── Right Actions: Search + Support + Mode ─────────────────── */}
-        <div className="flex items-center gap-2.5">
-          {/* Quick Search Button */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Quick Search Button (Desktop & Tablet only - Mobile has hero search & drawer search) */}
           <button
             onClick={onOpenCommandPalette}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#E5E7EB] dark:border-slate-800 text-[13px] font-semibold text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600 bg-white dark:bg-slate-900 transition-all cursor-pointer shadow-2xs"
+            className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#E5E7EB] dark:border-slate-800 text-[13px] font-semibold text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600 bg-white dark:bg-slate-900 transition-all cursor-pointer shadow-2xs"
             title="Search tools (⌘K)"
           >
             <Search className="w-4 h-4 text-slate-400" />
-            <span className="hidden sm:inline">Search</span>
-            <kbd className="hidden sm:inline px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 rounded">⌘K</kbd>
+            <span className="hidden md:inline">Search</span>
+            <kbd className="hidden md:inline px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 rounded">⌘K</kbd>
           </button>
 
           {/* Himanshu WhatsApp Direct Help */}
@@ -247,7 +247,7 @@ export const Header: React.FC<HeaderProps> = ({
             href="https://wa.me/919318375856?text=Hi%20Himanshu,%20I'm%20using%20Offline%20Toolkit"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#25D366] text-white text-[13px] font-bold hover:bg-[#20ba5a] transition-colors shadow-2xs"
+            className="w-8 h-8 sm:w-auto px-0 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#25D366] text-white text-[13px] font-bold hover:bg-[#20ba5a] transition-colors shadow-2xs flex items-center justify-center gap-1.5 shrink-0"
             title="Questions or feedback? Chat on WhatsApp"
           >
             <MessageCircle className="w-4 h-4" />
@@ -257,7 +257,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Theme Switcher */}
           <button
             onClick={() => setIsDark(p => !p)}
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer border border-[#E5E7EB] dark:border-slate-800"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer border border-[#E5E7EB] dark:border-slate-800 shrink-0"
             title="Toggle color theme"
           >
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -266,9 +266,10 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileOpen(p => !p)}
-            className="lg:hidden w-9 h-9 flex items-center justify-center text-slate-700 dark:text-slate-300 cursor-pointer rounded-xl border border-slate-200"
+            className="lg:hidden w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-slate-700 dark:text-slate-300 cursor-pointer rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 shrink-0"
+            title="Open Menu"
           >
-            {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isMobileOpen ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Menu className="w-4 h-4 sm:w-5 sm:h-5" />}
           </button>
         </div>
       </div>

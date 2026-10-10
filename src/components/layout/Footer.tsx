@@ -22,8 +22,8 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onOpenPrivacyPanel, onOpenCommandPalette, onOpenTool }) => {
   return (
-    <footer className="w-full border-t border-[#E5E7EB] dark:border-slate-800/80 bg-white dark:bg-[#0B0C0E] pt-16 pb-12 mt-20 relative z-10 transition-colors">
-      <div className="max-w-[1360px] mx-auto px-5 sm:px-8 space-y-12">
+    <footer className="w-full max-w-full overflow-hidden border-t border-[#E5E7EB] dark:border-slate-800/80 bg-white dark:bg-[#0B0C0E] pt-12 sm:pt-16 pb-10 sm:pb-12 mt-16 sm:mt-20 relative z-10 transition-colors">
+      <div className="max-w-[1360px] mx-auto px-4 sm:px-8 space-y-12 w-full">
         
         {/* Main Columns Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
@@ -87,7 +87,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPrivacyPanel, onOpenComman
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] text-white text-[12px] font-semibold hover:bg-[#20ba5a] transition-colors shadow-2xs"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
-                  <span>WhatsApp (+91 9318375856)</span>
+                  <span>WhatsApp</span>
                 </a>
               </div>
             </div>

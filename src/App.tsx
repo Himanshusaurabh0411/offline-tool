@@ -178,7 +178,7 @@ export const App: React.FC = () => {
   const isWorkflow = currentPath.includes('/workflow');
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F9FA] dark:bg-[#0E1013] text-[#1A1A1A] dark:text-[#F3F4F6] selection:bg-red-500 selection:text-white transition-colors">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden flex flex-col bg-[#F8F9FA] dark:bg-[#0E1013] text-[#1A1A1A] dark:text-[#F3F4F6] selection:bg-red-500 selection:text-white transition-colors">
       <Header
         onOpenPrivacyPanel={() => setIsPrivacyOpen(true)}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
@@ -189,13 +189,13 @@ export const App: React.FC = () => {
         onOpenTool={openToolById}
       />
 
-      <main className="flex-1">
+      <main className="flex-1 w-full max-w-full overflow-x-hidden">
         {isWorkflow ? (
-          <div className="max-w-[1360px] mx-auto px-5 sm:px-8 py-10">
+          <div className="max-w-[1360px] mx-auto px-4 sm:px-8 py-8 sm:py-10">
             <WorkflowBuilder onBack={backToHome} />
           </div>
         ) : activeTool ? (
-          <div className="max-w-[1360px] mx-auto px-5 sm:px-8 py-10">
+          <div className="max-w-[1360px] mx-auto px-4 sm:px-8 py-8 sm:py-10">
             <ILovePdfToolView
               plugin={activeTool}
               initialFiles={stagedFiles}
@@ -206,8 +206,8 @@ export const App: React.FC = () => {
         ) : (
           <>
             {/* ── Hero Section: Friendly, High-Clarity Header ────────── */}
-            <section className="bg-white dark:bg-[#111317] border-b border-[#E5E7EB] dark:border-slate-800 pt-10 sm:pt-16 pb-9 sm:pb-14">
-              <div className="max-w-4xl mx-auto px-4 sm:px-8 text-center space-y-4 sm:space-y-6">
+            <section className="w-full max-w-full overflow-x-hidden bg-white dark:bg-[#111317] border-b border-[#E5E7EB] dark:border-slate-800 pt-8 sm:pt-16 pb-8 sm:pb-14">
+              <div className="max-w-4xl mx-auto px-4 sm:px-8 text-center space-y-4 sm:space-y-6 w-full">
                 
                 {/* Platform Highlight Tag */}
                 <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-50 dark:bg-red-950/50 border border-red-200/80 dark:border-red-900/60 text-[#E5322D] text-[12px] sm:text-[13px] font-black uppercase tracking-wider">
@@ -232,7 +232,7 @@ export const App: React.FC = () => {
                 </p>
 
                 {/* Practical Search Box with Large Clear Input */}
-                <div className="pt-1 max-w-xl mx-auto">
+                <div className="pt-1 max-w-xl mx-auto w-full px-1 sm:px-0">
                   <div className="relative flex items-center">
                     <Search className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" />
                     <input
@@ -240,7 +240,7 @@ export const App: React.FC = () => {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search tools (e.g., merge pdf, passport photo, compress to 50kb)..."
-                      className="w-full h-13 sm:h-14 bg-[#F8F9FA] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-2xl pl-12 pr-24 text-[15px] sm:text-[16px] font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#E5322D] dark:focus:border-[#E5322D] transition-all shadow-xs"
+                      className="w-full h-12 sm:h-14 bg-[#F8F9FA] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-2xl pl-11 pr-20 text-[14px] sm:text-[16px] font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#E5322D] dark:focus:border-[#E5322D] transition-all shadow-xs"
                     />
                     {searchQuery ? (
                       <button
@@ -258,7 +258,7 @@ export const App: React.FC = () => {
                 </div>
 
                 {/* Clean, Readable Category Pills with Horizontal Scroll on Mobile */}
-                <div className="pt-2 flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar gap-2 px-1 pb-1">
+                <div className="w-full max-w-full pt-2 flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar gap-2 px-1 pb-1">
                   {categoryTabs.map((tab) => {
                     const isActive = selectedCategory === tab.id;
                     return (
@@ -281,7 +281,7 @@ export const App: React.FC = () => {
                 </div>
 
                 {/* Unique Multi-Tool Workflow Studio Callout Banner */}
-                <div className="pt-3 max-w-2xl mx-auto">
+                <div className="pt-3 max-w-2xl mx-auto w-full px-1 sm:px-0">
                   <div 
                     onClick={openWorkflowBuilder}
                     className="group cursor-pointer p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-rose-950/40 border border-amber-300/80 dark:border-amber-700/60 hover:border-amber-400 dark:hover:border-amber-500 transition-all shadow-xs flex items-center justify-between gap-3 text-left"
@@ -315,7 +315,7 @@ export const App: React.FC = () => {
             </section>
 
             {/* ── Main Workspace Body ──────────────────────────────────── */}
-            <div className="max-w-[1360px] mx-auto px-5 sm:px-8 py-12">
+            <div className="max-w-[1360px] mx-auto px-3.5 sm:px-8 py-8 sm:py-12 w-full">
 
               {/* Tools Counter & Active Filter Status */}
               <div className="flex items-center justify-between mb-8 pb-3 border-b border-slate-200 dark:border-slate-800">
@@ -352,7 +352,7 @@ export const App: React.FC = () => {
                 </div>
               ) : (
                 /* Authentic iLovePDF Responsive Grid (2 cols on mobile, 6 on desktop) */
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2.5 sm:gap-5 w-full">
                   {filteredTools.map((tool) => {
                     const isFav = favorites.includes(tool.id);
                     return (
