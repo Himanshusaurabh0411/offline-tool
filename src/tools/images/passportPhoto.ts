@@ -1,5 +1,5 @@
 import { ToolPlugin, ToolInputFile, ToolOutputItem, ToolExecutionContext } from '../../core/plugins/types';
-import { removeOrReplaceBackground } from './bgRemovalHelper';
+import { createCutoutCanvas } from './bgRemovalHelper';
 
 export const passportPhotoPlugin: ToolPlugin = {
   id: 'passport-photo-maker',
@@ -111,15 +111,25 @@ export const passportPhotoPlugin: ToolPlugin = {
 
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, photoW, photoH);
 
-      // Perform background removal and color replacement
+      // Perform background removal and color replacement on source image before cropping
       if (removeBg && bgColor !== 'original') {
         context.reportProgress(65, 'Segmenting background & applying color...');
-        removeOrReplaceBackground(ctx, photoW, photoH, {
-          tolerance: 30,
-          replaceBgColor: bgColor,
-        });
+        const cutout = createCutoutCanvas(img, { tolerance: 30, protectSkin: true });
+        
+        let bgFill = '#FFFFFF';
+        if (bgColor === 'white') bgFill = '#FFFFFF';
+        else if (bgColor === 'lightblue') bgFill = '#CAE8FF';
+        else if (bgColor === 'blue') bgFill = '#2563EB';
+        else if (bgColor === 'red') bgFill = '#DC2626';
+        else if (bgColor === 'lightgrey') bgFill = '#F3F4F6';
+        else if (bgColor.startsWith('#')) bgFill = bgColor;
+
+        ctx.fillStyle = bgFill;
+        ctx.fillRect(0, 0, photoW, photoH);
+        ctx.drawImage(cutout, srcX, srcY, srcW, srcH, 0, 0, photoW, photoH);
+      } else {
+        ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, photoW, photoH);
       }
 
       // Subtle border cutting guide

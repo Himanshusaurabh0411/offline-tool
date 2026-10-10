@@ -8,15 +8,16 @@ import {
   Move, 
   Eye, 
   EyeOff, 
-  Sparkles, 
-  Layers, 
   Sliders, 
   ArrowLeft,
   Camera,
-  Scissors
+  Scissors,
+  Layers,
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 import { ToolInputFile } from '../../core/plugins/types';
-import { removeOrReplaceBackground } from '../../tools/images/bgRemovalHelper';
+import { createCutoutCanvas } from '../../tools/images/bgRemovalHelper';
 
 interface PassportPhotoStudioProps {
   file: File | ToolInputFile;
@@ -80,6 +81,7 @@ const BG_PRESETS = [
   { id: 'blue', name: 'Royal Blue', color: '#2563EB', desc: 'Corporate / ID Badges' },
   { id: 'red', name: 'Classic Red', color: '#DC2626', desc: 'Asian Passports / ID' },
   { id: 'lightgrey', name: 'Light Grey', color: '#F3F4F6', desc: 'Canada & EU Standard' },
+  { id: 'transparent', name: 'Transparent (PNG)', color: 'transparent', desc: 'Cutout PNG without background' },
   { id: 'original', name: 'Original', color: 'transparent', desc: 'Keep original background' },
 ];
 
@@ -88,6 +90,8 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
   const [selectedBg, setSelectedBg] = useState<string>('white');
   const [customColor, setCustomColor] = useState<string>('#FFFFFF');
   const [removeBg, setRemoveBg] = useState<boolean>(true);
+  const [tolerance, setTolerance] = useState<number>(32);
+  const [isSegmenting, setIsSegmenting] = useState<boolean>(false);
   
   // Interactive Alignment Controls
   const [zoom, setZoom] = useState<number>(1.0);
@@ -96,11 +100,41 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
   const [rotation, setRotation] = useState<number>(0);
   const [showBiometricGuide, setShowBiometricGuide] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'single' | 'sheet'>('single');
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sheetCanvasRef = useRef<HTMLCanvasElement>(null);
   const rawImageRef = useRef<HTMLImageElement | null>(null);
+  const cutoutCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Drag & Touch interaction refs
+  const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const panStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const touchDistanceRef = useRef<number | null>(null);
+
+  const cfg = FORMATS[selectedFormat];
+
+  // Helper to re-segment image when raw image or tolerance changes
+  const runBackgroundSegmentation = useCallback(() => {
+    const img = rawImageRef.current;
+    if (!img) return;
+
+    setIsSegmenting(true);
+    // Allow React state to update before computing segmentation
+    setTimeout(() => {
+      try {
+        const cutout = createCutoutCanvas(img, {
+          tolerance,
+          protectSkin: true,
+        });
+        cutoutCanvasRef.current = cutout;
+      } catch (err) {
+        console.error('Segmentation error:', err);
+      } finally {
+        setIsSegmenting(false);
+      }
+    }, 10);
+  }, [tolerance]);
 
   // Load image element
   useEffect(() => {
@@ -109,74 +143,24 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
     const url = URL.createObjectURL(blob);
     img.onload = () => {
       rawImageRef.current = img;
-      renderLiveCanvas();
+      runBackgroundSegmentation();
     };
     img.src = url;
 
     return () => {
       URL.revokeObjectURL(url);
     };
-  }, [file]);
+  }, [file, runBackgroundSegmentation]);
 
-  const cfg = FORMATS[selectedFormat];
-
-  // Render the single photo onto canvas with face transform and background replacement
-  const renderLiveCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    const img = rawImageRef.current;
-    if (!canvas || !img) return;
-
-    const w = cfg.widthPx;
-    const h = cfg.heightPx;
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
-
-    // 1. Calculate base cover fit
-    const targetRatio = w / h;
-    const imgRatio = img.width / img.height;
-    let baseW = w;
-    let baseH = h;
-    if (imgRatio > targetRatio) {
-      baseW = h * imgRatio;
-    } else {
-      baseH = w / imgRatio;
+  // Re-run segmentation when tolerance changes
+  useEffect(() => {
+    if (rawImageRef.current) {
+      runBackgroundSegmentation();
     }
+  }, [tolerance, runBackgroundSegmentation]);
 
-    // 2. Clear canvas
-    ctx.clearRect(0, 0, w, h);
-
-    // 3. Draw image centered with user transform (Zoom, Pan, Rotation)
-    ctx.save();
-    ctx.translate(w / 2 + panX, h / 2 + panY);
-    ctx.rotate((rotation * Math.PI) / 180);
-    ctx.scale(zoom, zoom);
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(img, -baseW / 2, -baseH / 2, baseW, baseH);
-    ctx.restore();
-
-    // 4. Background removal & replacement if requested
-    if (removeBg && selectedBg !== 'original') {
-      const activeColor = selectedBg === 'custom' ? customColor : selectedBg;
-      removeOrReplaceBackground(ctx, w, h, {
-        tolerance: 30,
-        replaceBgColor: activeColor,
-      });
-    }
-
-    // 5. Delicate outer cut boundary guide
-    ctx.strokeStyle = '#D1D5DB';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(0, 0, w, h);
-
-    // Update 4x6 sheet canvas
-    renderSheetCanvas(canvas);
-  }, [cfg, panX, panY, zoom, rotation, removeBg, selectedBg, customColor]);
-
-  // Render 4x6 print sheet (1800 x 1200 px)
-  const renderSheetCanvas = (sourceCanvas: HTMLCanvasElement) => {
+  // Render 4x6 print sheet (1800 x 1200 px at 300 DPI)
+  const renderSheetCanvas = useCallback((sourceCanvas: HTMLCanvasElement) => {
     const sheetCanvas = sheetCanvasRef.current;
     if (!sheetCanvas) return;
 
@@ -207,26 +191,157 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
         sCtx.strokeRect(x, y, pw, ph);
       }
     }
-  };
+  }, [cfg]);
+
+  // Render the single photo onto canvas with face transform and background replacement
+  const renderLiveCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    const img = rawImageRef.current;
+    if (!canvas || !img) return;
+
+    const w = cfg.widthPx;
+    const h = cfg.heightPx;
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // 1. Calculate base cover fit
+    const targetRatio = w / h;
+    const imgRatio = img.width / img.height;
+    let baseW = w;
+    let baseH = h;
+    if (imgRatio > targetRatio) {
+      baseW = h * imgRatio;
+    } else {
+      baseH = w / imgRatio;
+    }
+
+    // 2. Clear canvas
+    ctx.clearRect(0, 0, w, h);
+
+    // 3. Draw background color if background removal is active and not original
+    const shouldUseCutout = removeBg && selectedBg !== 'original' && cutoutCanvasRef.current;
+    if (shouldUseCutout && selectedBg !== 'transparent') {
+      let bgFill = '#FFFFFF';
+      if (selectedBg === 'white') bgFill = '#FFFFFF';
+      else if (selectedBg === 'lightblue') bgFill = '#CAE8FF';
+      else if (selectedBg === 'blue') bgFill = '#2563EB';
+      else if (selectedBg === 'red') bgFill = '#DC2626';
+      else if (selectedBg === 'lightgrey') bgFill = '#F3F4F6';
+      else if (selectedBg === 'custom') bgFill = customColor;
+
+      ctx.fillStyle = bgFill;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    // 4. Source image element to draw: cleanly segmented cutout OR original image
+    const sourceDrawable = shouldUseCutout ? cutoutCanvasRef.current! : img;
+
+    // 5. Draw image centered with user transform (Zoom, Pan, Rotation)
+    ctx.save();
+    ctx.translate(w / 2 + panX, h / 2 + panY);
+    ctx.rotate((rotation * Math.PI) / 180);
+    ctx.scale(zoom, zoom);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(sourceDrawable, -baseW / 2, -baseH / 2, baseW, baseH);
+    ctx.restore();
+
+    // 6. Subtle outer boundary cut guide
+    ctx.strokeStyle = '#D1D5DB';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0, 0, w, h);
+
+    // Update 4x6 print sheet
+    renderSheetCanvas(canvas);
+  }, [cfg, panX, panY, zoom, rotation, removeBg, selectedBg, customColor, renderSheetCanvas, isSegmenting]);
 
   useEffect(() => {
     renderLiveCanvas();
   }, [renderLiveCanvas]);
+
+  // Mouse drag handlers on canvas stage
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    setIsDragging(true);
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    panStartRef.current = { x: panX, y: panY };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDragging) return;
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
+    setPanX(panStartRef.current.x + dx);
+    setPanY(panStartRef.current.y + dy);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Touch handlers for mobile pan & pinch-zoom
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      panStartRef.current = { x: panX, y: panY };
+    } else if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      touchDistanceRef.current = dist;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length === 1 && isDragging) {
+      const dx = e.touches[0].clientX - dragStartRef.current.x;
+      const dy = e.touches[0].clientY - dragStartRef.current.y;
+      setPanX(panStartRef.current.x + dx);
+      setPanY(panStartRef.current.y + dy);
+    } else if (e.touches.length === 2 && touchDistanceRef.current !== null) {
+      const newDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const ratio = newDist / touchDistanceRef.current;
+      touchDistanceRef.current = newDist;
+      setZoom((z) => Math.min(3.5, Math.max(0.4, Number((z * ratio).toFixed(2)))));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    touchDistanceRef.current = null;
+  };
+
+  // Wheel zoom handler
+  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.08 : -0.08;
+    setZoom((z) => Math.min(3.5, Math.max(0.4, Number((z + delta).toFixed(2)))));
+  };
 
   // Download Single Photo
   const handleDownloadSingle = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    const isPng = selectedBg === 'transparent';
+    const mime = isPng ? 'image/png' : 'image/jpeg';
+    const ext = isPng ? 'png' : 'jpg';
+
     canvas.toBlob((blob) => {
       if (!blob) return;
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `passport-photo-${cfg.widthMm}x${cfg.heightMm}mm.jpg`;
+      a.download = `passport-photo-${cfg.widthMm}x${cfg.heightMm}mm.${ext}`;
       a.click();
       URL.revokeObjectURL(url);
-    }, 'image/jpeg', 0.98);
+    }, mime, 0.98);
   };
 
   // Download Printable 4x6 Sheet
@@ -245,6 +360,14 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
     }, 'image/jpeg', 0.98);
   };
 
+  // Auto-center / fit reset
+  const handleResetAlignment = () => {
+    setZoom(1.0);
+    setPanX(0);
+    setPanY(0);
+    setRotation(0);
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       
@@ -259,10 +382,17 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
         </button>
 
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-            Live Biometric Studio Active (100% In-Browser)
-          </span>
+          {isSegmenting ? (
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              <span>Segmenting Background...</span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>100% Offline Biometric Studio</span>
+            </span>
+          )}
         </div>
       </div>
 
@@ -270,10 +400,10 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
         
         {/* Left Column: Live Interactive Canvas Stage */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm">
             
             {/* View Mode Toggle: Single vs 4x6 Sheet */}
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
                 <button
                   onClick={() => setActiveTab('single')}
@@ -314,29 +444,38 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
             </div>
 
             {/* Canvas Display Stage */}
-            <div className="relative min-h-[380px] sm:min-h-[440px] flex items-center justify-center p-4 bg-slate-100 dark:bg-slate-950/60 rounded-xl overflow-hidden border border-slate-200/60 dark:border-slate-800">
+            <div className="relative min-h-[380px] sm:min-h-[440px] flex items-center justify-center p-4 bg-slate-100 dark:bg-slate-950/60 rounded-xl overflow-hidden border border-slate-200/60 dark:border-slate-800 select-none">
               
-              {/* Single Photo Stage */}
-              <div className={`relative flex items-center justify-center ${activeTab === 'single' ? '' : 'hidden'}`}>
+              {/* Single Photo Stage with Direct Drag & Wheel Zoom */}
+              <div 
+                className={`relative flex items-center justify-center ${activeTab === 'single' ? '' : 'hidden'}`}
+              >
                 <canvas
                   ref={canvasRef}
-                  className="rounded-lg shadow-2xl max-h-[360px] sm:max-h-[400px] w-auto border border-white dark:border-slate-700 select-none"
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                  onWheel={handleWheel}
+                  className={`rounded-lg shadow-2xl max-h-[360px] sm:max-h-[400px] w-auto border border-white dark:border-slate-700 touch-none ${
+                    isDragging ? 'cursor-grabbing' : 'cursor-grab'
+                  }`}
                 />
 
                 {/* Biometric Head, Eyes & Chin Alignment Overlay */}
                 {showBiometricGuide && (
                   <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
-                    {/* Head oval */}
                     <div className="w-[62%] h-[68%] rounded-full border-2 border-dashed border-red-500/80 shadow-xs flex flex-col justify-between items-center py-6">
-                      {/* Eyes guide line */}
                       <div className="w-full border-t border-dotted border-red-400/90 relative">
-                        <span className="absolute -top-3.5 left-2 text-[9px] font-black text-red-600 dark:text-red-400 uppercase tracking-tight bg-white/80 dark:bg-slate-900/80 px-1 rounded">
+                        <span className="absolute -top-3.5 left-2 text-[9px] font-black text-red-600 dark:text-red-400 uppercase tracking-tight bg-white/90 dark:bg-slate-900/90 px-1 rounded shadow-2xs">
                           Eye Level
                         </span>
                       </div>
-                      {/* Chin guide line */}
                       <div className="w-4/5 border-t border-dotted border-red-400/90 relative">
-                        <span className="absolute -top-3.5 right-2 text-[9px] font-black text-red-600 dark:text-red-400 uppercase tracking-tight bg-white/80 dark:bg-slate-900/80 px-1 rounded">
+                        <span className="absolute -top-3.5 right-2 text-[9px] font-black text-red-600 dark:text-red-400 uppercase tracking-tight bg-white/90 dark:bg-slate-900/90 px-1 rounded shadow-2xs">
                           Chin Bottom
                         </span>
                       </div>
@@ -355,8 +494,14 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
 
             </div>
 
-            {/* Quick Interactive Face Adjusters (Zoom, Pan, Rotate) */}
-            <div className="pt-5 border-t border-slate-100 dark:border-slate-800 space-y-4">
+            {/* Quick interactive dragging hint */}
+            <div className="mt-2 text-center text-[11px] text-slate-500 flex items-center justify-center gap-1.5">
+              <Move className="w-3.5 h-3.5" />
+              <span><strong>Tip:</strong> Drag image with mouse or finger to position face in oval. Scroll or pinch to zoom.</span>
+            </div>
+
+            {/* Interactive Face Adjusters (Zoom, Pan, Rotate) */}
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-semibold text-slate-700 dark:text-slate-300">
                 
                 {/* Zoom */}
@@ -368,15 +513,31 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
                     </span>
                     <span className="font-mono text-slate-400">{Math.round(zoom * 100)}%</span>
                   </div>
-                  <input
-                    type="range"
-                    min="0.7"
-                    max="2.5"
-                    step="0.05"
-                    value={zoom}
-                    onChange={(e) => setZoom(parseFloat(e.target.value))}
-                    className="w-full accent-[#E5322D]"
-                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setZoom(z => Math.max(0.4, Number((z - 0.1).toFixed(2))))}
+                      className="p-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors"
+                      title="Zoom Out"
+                    >
+                      <ZoomOut className="w-3.5 h-3.5" />
+                    </button>
+                    <input
+                      type="range"
+                      min="0.4"
+                      max="3.5"
+                      step="0.05"
+                      value={zoom}
+                      onChange={(e) => setZoom(parseFloat(e.target.value))}
+                      className="w-full accent-[#E5322D]"
+                    />
+                    <button
+                      onClick={() => setZoom(z => Math.min(3.5, Number((z + 0.1).toFixed(2))))}
+                      className="p-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors"
+                      title="Zoom In"
+                    >
+                      <ZoomIn className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Pan X */}
@@ -390,8 +551,8 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
                   </div>
                   <input
                     type="range"
-                    min="-150"
-                    max="150"
+                    min="-400"
+                    max="400"
                     step="1"
                     value={panX}
                     onChange={(e) => setPanX(parseInt(e.target.value))}
@@ -410,8 +571,8 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
                   </div>
                   <input
                     type="range"
-                    min="-150"
-                    max="150"
+                    min="-400"
+                    max="400"
                     step="1"
                     value={panY}
                     onChange={(e) => setPanY(parseInt(e.target.value))}
@@ -432,15 +593,10 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
                 </button>
 
                 <button
-                  onClick={() => {
-                    setZoom(1.0);
-                    setPanX(0);
-                    setPanY(0);
-                    setRotation(0);
-                  }}
-                  className="text-xs text-slate-500 hover:text-red-600 transition-colors cursor-pointer font-semibold"
+                  onClick={handleResetAlignment}
+                  className="text-xs text-slate-500 hover:text-[#E5322D] transition-colors cursor-pointer font-semibold"
                 >
-                  Reset Alignment
+                  Reset Alignment & Fit
                 </button>
               </div>
 
@@ -450,7 +606,7 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
         </div>
 
         {/* Right Column: Biometric Controls & One-Click Download */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-5 space-y-5">
           
           {/* Format Selection Card */}
           <div className="bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-3">
@@ -496,7 +652,7 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
                   <Scissors className="w-4 h-4 text-[#E5322D]" />
                   <span>Background Color Changer</span>
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">1-click offline background color replacement</p>
+                <p className="text-xs text-slate-500 mt-0.5">1-click offline background segmentation</p>
               </div>
 
               {/* Toggle switch */}
@@ -528,7 +684,11 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
                       >
                         <div
                           className="w-5 h-5 rounded-full border border-slate-300 shrink-0 shadow-2xs"
-                          style={{ backgroundColor: preset.color }}
+                          style={{ 
+                            backgroundColor: preset.color === 'transparent' ? '#F3F4F6' : preset.color,
+                            backgroundImage: preset.id === 'transparent' ? 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)' : undefined,
+                            backgroundSize: '6px 6px'
+                          }}
                         />
                         <div className="min-w-0">
                           <div className="text-xs font-bold text-slate-900 dark:text-white truncate">
@@ -566,6 +726,31 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
                       className="w-7 h-7 rounded-lg border border-slate-200 cursor-pointer"
                     />
                     <span className="font-mono text-xs text-slate-400">{customColor}</span>
+                  </div>
+                </div>
+
+                {/* Sensitivity / Tolerance Slider */}
+                <div className="pt-2 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
+                  <div className="flex justify-between items-center text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="flex items-center gap-1.5">
+                      <Sliders className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Edge Sensitivity (Tolerance)</span>
+                    </span>
+                    <span className="font-mono text-slate-400">{tolerance}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="15"
+                    max="65"
+                    step="1"
+                    value={tolerance}
+                    onChange={(e) => setTolerance(parseInt(e.target.value))}
+                    className="w-full accent-[#E5322D]"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-400">
+                    <span>Precise (Low)</span>
+                    <span>Standard (32)</span>
+                    <span>Aggressive (High)</span>
                   </div>
                 </div>
 
