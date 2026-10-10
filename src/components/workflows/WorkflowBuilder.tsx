@@ -220,22 +220,21 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
       
       {/* ── Studio Hero Header ────────────────────────────────────────── */}
       <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#111317] border border-stone-200/90 dark:border-stone-800 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-amber-400/20 via-orange-400/10 to-transparent rounded-full blur-3xl pointer-events-none" />
         
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-[11px] font-black uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-black uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-[#E5322D]" />
               <span>Visual Drag & Drop Workflow Studio</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold">100% In-Browser</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#E5322D]" />
+              <span className="text-slate-600 dark:text-slate-400 font-bold">100% In-Browser</span>
             </div>
             
-            <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-stone-900 dark:text-white">
-              Chain Any Tools into a <span className="text-amber-600 dark:text-amber-400">1-Click Pipeline</span>
+            <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+              Chain Any Tools into a <span className="text-[#E5322D]">1-Click Pipeline</span>
             </h1>
             
-            <p className="text-sm sm:text-base text-stone-600 dark:text-stone-300 max-w-2xl leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
               Connect image, PDF, and privacy tools sequentially. Drop batches of files and let your browser transform them step-by-step with zero cloud uploads.
             </p>
           </div>
@@ -303,11 +302,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
       {/* ── Preset Recipes Carousel ────────────────────────────────────── */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs font-extrabold uppercase tracking-wider text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-amber-500" />
-            Instant 1-Click Recipe Templates
+          <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
+            Preset Pipeline Templates
           </span>
-          <span className="text-xs text-stone-400">Click any recipe to load</span>
+          <span className="text-xs text-slate-400">Click to load</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -323,26 +322,26 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
                 }}
                 className={`p-4 rounded-2xl text-left transition-all border cursor-pointer relative overflow-hidden group ${
                   isSelected
-                    ? 'bg-amber-50/80 dark:bg-amber-950/40 border-amber-400 dark:border-amber-600 shadow-xs ring-2 ring-amber-400/20'
+                    ? 'bg-slate-50 dark:bg-[#15181f] border-slate-400 dark:border-slate-600 shadow-xs ring-2 ring-slate-400/20'
                     : 'bg-white dark:bg-[#111317] border-stone-200 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <h4 className="font-extrabold text-xs sm:text-sm text-stone-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                  <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white group-hover:text-[#E5322D] dark:group-hover:text-[#E5322D] transition-colors">
                     {preset.name}
                   </h4>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 shrink-0">
                     {preset.steps.length} Steps
                   </span>
                 </div>
-                <p className="text-[11.5px] text-stone-500 dark:text-stone-400 mt-1.5 line-clamp-2 leading-relaxed">
+                <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">
                   {preset.description}
                 </p>
-                <div className="flex items-center gap-1.5 mt-3 pt-2.5 border-t border-stone-100 dark:border-stone-800/80 text-[11px] font-semibold text-stone-600 dark:text-stone-400 overflow-hidden">
+                <div className="flex items-center gap-1.5 mt-3 pt-2.5 border-t border-stone-100 dark:border-stone-800/80 text-[11px] font-semibold text-slate-600 dark:text-slate-400 overflow-hidden">
                   {preset.steps.map((st, i) => (
                     <React.Fragment key={st.id}>
                       <span className="truncate max-w-[90px]">{st.name}</span>
-                      {i < preset.steps.length - 1 && <span className="text-amber-500 font-bold">➔</span>}
+                      {i < preset.steps.length - 1 && <span className="text-slate-400 font-bold">➔</span>}
                     </React.Fragment>
                   ))}
                 </div>
@@ -359,10 +358,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
             type="text"
             value={workflow.name}
             onChange={(e) => setWorkflow(prev => ({ ...prev, name: e.target.value }))}
-            className="w-full max-w-sm bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-3.5 py-1.5 text-xs sm:text-sm font-bold text-stone-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+            className="w-full max-w-sm bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-3.5 py-1.5 text-xs sm:text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-500/20 focus:border-slate-500"
             placeholder="Workflow Name"
           />
-          <span className="text-xs font-bold text-amber-700 dark:text-amber-300 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 shrink-0">
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
             {workflow.steps.length} Nodes Configured
           </span>
         </div>
@@ -370,7 +369,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsToolPaletteOpen(p => !p)}
-            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+            className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Tool to Chain</span>
@@ -433,7 +432,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
           <div className="flex flex-col lg:flex-row items-center justify-start gap-6 relative z-10 min-w-full pb-4">
             
             {/* NODE 0: INPUT SOURCE (Dropzone & Staging) */}
-            <div className="w-full lg:w-72 shrink-0 bg-white dark:bg-[#15181f] rounded-2xl border-2 border-dashed border-stone-300 dark:border-stone-700 p-5 shadow-sm relative group hover:border-amber-400 transition-all">
+            <div className="w-full lg:w-72 shrink-0 bg-white dark:bg-[#15181f] rounded-2xl border-2 border-dashed border-stone-300 dark:border-stone-700 p-5 shadow-sm relative group hover:border-slate-400 transition-all">
               <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-md bg-stone-100 dark:bg-stone-800 flex items-center justify-center font-black text-xs text-stone-700 dark:text-stone-300">
@@ -448,7 +447,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
 
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-3.5 p-4 rounded-xl bg-stone-50 dark:bg-stone-900/60 border border-stone-200/80 dark:border-stone-800 text-center cursor-pointer hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-all"
+                className="mt-3.5 p-4 rounded-xl bg-stone-50 dark:bg-stone-900/60 border border-stone-200/80 dark:border-stone-800 text-center cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-all"
               >
                 <input
                   ref={fileInputRef}
@@ -459,7 +458,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
                     if (e.target.files) setStagedFiles(Array.from(e.target.files));
                   }}
                 />
-                <Upload className="w-6 h-6 text-stone-400 mx-auto mb-1.5 group-hover:text-amber-500 transition-colors" />
+                <Upload className="w-6 h-6 text-stone-400 mx-auto mb-1.5 group-hover:text-slate-800 dark:group-hover:text-slate-200 transition-colors" />
                 <span className="font-bold text-xs text-stone-800 dark:text-stone-200 block">
                   {stagedFiles.length > 0 ? `${stagedFiles.length} file(s) ready` : 'Drop input files here'}
                 </span>
@@ -471,7 +470,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
               {/* Sample loader button */}
               <button
                 onClick={handleLoadSampleImage}
-                className="w-full mt-2.5 py-1.5 rounded-lg text-[11px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/60 dark:border-amber-800 transition-colors"
+                className="w-full mt-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 transition-colors cursor-pointer"
               >
                 + Load Sample Test Image
               </button>
@@ -489,11 +488,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
             </div>
 
             {/* FLOW CABLE / CONNECTOR */}
-            <div className="flex items-center justify-center text-amber-500 font-black rotate-90 lg:rotate-0">
-              <div className="w-8 h-1 bg-amber-400 dark:bg-amber-600 rounded-full relative overflow-hidden">
-                {isRunning && <div className="absolute inset-0 bg-white animate-pulse" />}
+            <div className="flex items-center justify-center text-slate-400 dark:text-slate-500 font-black rotate-90 lg:rotate-0">
+              <div className="w-8 h-1 bg-slate-300 dark:bg-slate-700 rounded-full relative overflow-hidden">
+                {isRunning && <div className="absolute inset-0 bg-[#E5322D] animate-pulse" />}
               </div>
-              <ArrowRight className="w-5 h-5 -ml-1 text-amber-500" />
+              <ArrowRight className="w-5 h-5 -ml-1 text-slate-400 dark:text-slate-500" />
             </div>
 
             {/* INTERMEDIATE STEP NODES */}
@@ -506,9 +505,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
                 <React.Fragment key={step.id}>
                   <div className={`w-full lg:w-72 shrink-0 rounded-2xl border transition-all relative ${
                     isCurrentStep
-                      ? 'bg-amber-50/90 dark:bg-amber-950/60 border-amber-500 shadow-md ring-2 ring-amber-400/30'
+                      ? 'bg-slate-50 dark:bg-[#15181f] border-[#E5322D] shadow-md ring-2 ring-red-500/20'
                       : isCompletedStep
-                      ? 'bg-white dark:bg-[#15181f] border-emerald-400 dark:border-emerald-600 shadow-xs'
+                      ? 'bg-white dark:bg-[#15181f] border-slate-400 dark:border-slate-600 shadow-xs'
                       : 'bg-white dark:bg-[#15181f] border-stone-200 dark:border-stone-800 shadow-sm'
                   }`}>
                     
@@ -516,10 +515,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
                     <div className="p-4 pb-3 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span className={`w-6 h-6 rounded-md font-mono font-black text-xs flex items-center justify-center ${
-                          isCompletedStep
-                            ? 'bg-emerald-500 text-white'
-                            : isCurrentStep
-                            ? 'bg-amber-500 text-white animate-bounce'
+                          isCompletedStep || isCurrentStep
+                            ? 'bg-[#E5322D] text-white'
                             : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300'
                         }`}>
                           {isCompletedStep ? <Check className="w-3.5 h-3.5" /> : idx + 1}
@@ -624,11 +621,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
                   </div>
 
                   {/* Flow Cable */}
-                  <div className="flex items-center justify-center text-amber-500 font-black rotate-90 lg:rotate-0">
-                    <div className="w-8 h-1 bg-amber-400 dark:bg-amber-600 rounded-full relative overflow-hidden">
-                      {isRunning && <div className="absolute inset-0 bg-white animate-pulse" />}
+                  <div className="flex items-center justify-center text-slate-400 dark:text-slate-500 font-black rotate-90 lg:rotate-0">
+                    <div className="w-8 h-1 bg-slate-300 dark:bg-slate-700 rounded-full relative overflow-hidden">
+                      {isRunning && <div className="absolute inset-0 bg-[#E5322D] animate-pulse" />}
                     </div>
-                    <ArrowRight className="w-5 h-5 -ml-1 text-amber-500" />
+                    <ArrowRight className="w-5 h-5 -ml-1 text-slate-400 dark:text-slate-500" />
                   </div>
                 </React.Fragment>
               );

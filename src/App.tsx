@@ -285,27 +285,27 @@ export const App: React.FC = () => {
                 <div className="pt-3 max-w-2xl mx-auto w-full px-1 sm:px-0">
                   <div 
                     onClick={openWorkflowBuilder}
-                    className="group cursor-pointer p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-rose-950/40 border border-amber-300/80 dark:border-amber-700/60 hover:border-amber-400 dark:hover:border-amber-500 transition-all shadow-xs flex items-center justify-between gap-3 text-left"
+                    className="group cursor-pointer p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#141518] hover:bg-slate-50 dark:hover:bg-[#181a1f] border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-xs flex items-center justify-between gap-3 text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-                        <Sparkles className="w-5 h-5 animate-pulse" />
+                      <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                        <Sparkles className="w-4 h-4 text-[#E5322D]" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-[14px] sm:text-[15px] text-stone-900 dark:text-white">
-                            ✨ Visual Drag & Drop Workflow Studio
+                          <span className="font-extrabold text-[14px] sm:text-[15px] text-slate-900 dark:text-white">
+                            Visual Drag & Drop Workflow Studio
                           </span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-500 text-white">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-[#E5322D] text-white">
                             NEW
                           </span>
                         </div>
-                        <p className="text-[12px] sm:text-[13px] text-stone-600 dark:text-stone-300 mt-0.5">
-                          Chain any offline tools into 1-click batch pipelines (e.g. Remove BG ➔ Resize ➔ Compress WebP ➔ ZIP).
+                        <p className="text-[12px] sm:text-[13px] text-slate-600 dark:text-slate-400 mt-0.5">
+                          Chain offline tools into 1-click batch pipelines (e.g. Remove BG ➔ Resize ➔ Compress WebP ➔ ZIP).
                         </p>
                       </div>
                     </div>
-                    <div className="hidden sm:flex items-center gap-1 font-bold text-xs text-amber-700 dark:text-amber-400 shrink-0 group-hover:translate-x-1 transition-transform">
+                    <div className="hidden sm:flex items-center gap-1 font-bold text-xs text-slate-800 dark:text-slate-200 group-hover:text-[#E5322D] dark:group-hover:text-[#E5322D] shrink-0 group-hover:translate-x-1 transition-transform">
                       <span>Launch Studio</span>
                       <ArrowRight className="w-4 h-4" />
                     </div>
