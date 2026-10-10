@@ -6,6 +6,7 @@ import { imageAsciiPlugin } from '../tools/images/imageAscii';
 import { imageMemePlugin } from '../tools/images/imageMeme';
 import { imageCollagePlugin } from '../tools/images/imageCollage';
 import { imageExifPlugin } from '../tools/images/imageExif';
+import { imageRemoveBgPlugin } from '../tools/images/imageRemoveBg';
 import { executeTool } from '../core/plugins/runner';
 
 // Polyfill canvas & ImageBitmap for Node.js test environment
@@ -142,5 +143,17 @@ describe('Phase (c) Image Processing Suite', () => {
     expect(results.length).toBeGreaterThanOrEqual(1);
     expect(results[0].type).toBe('text/plain');
     expect(results[0].name).toContain('exif-report');
+  });
+
+  it('removes or replaces background with transparent alpha or color', async () => {
+    const img = createTestImage('portrait.png');
+    const results = await executeTool(imageRemoveBgPlugin, [img], {
+      bgColor: 'transparent',
+      tolerance: 32,
+    });
+
+    expect(results).toHaveLength(1);
+    expect(results[0].type).toBe('image/png');
+    expect(results[0].name).toContain('nobg');
   });
 });

@@ -27,6 +27,7 @@ import { getToolCategoryTheme, SUGGESTED_NEXT_TOOLS } from '../../core/ilovepdf/
 import { ILovePdfToolIcon } from '../common/ILovePdfIcons';
 import { pluginRegistry } from '../../core/plugins/registry';
 import { PassportPhotoStudio } from '../studio/PassportPhotoStudio';
+import { AiBackgroundRemoverStudio } from '../studio/AiBackgroundRemoverStudio';
 
 interface ILovePdfToolViewProps {
   plugin: ToolPlugin;
@@ -291,8 +292,16 @@ export const ILovePdfToolView: React.FC<ILovePdfToolViewProps> = ({
         />
       )}
 
+      {/* Interactive AI Background Remover Studio */}
+      {files.length > 0 && !results && plugin.id === 'image-remove-bg' && (
+        <AiBackgroundRemoverStudio
+          file={files[0]}
+          onBack={() => setFiles([])}
+        />
+      )}
+
       {/* STATE 2: Files Staged - Workspace Columns */}
-      {files.length > 0 && !results && plugin.id !== 'passport-photo-maker' && (
+      {files.length > 0 && !results && plugin.id !== 'passport-photo-maker' && plugin.id !== 'image-remove-bg' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start my-auto">
           
           {/* Left Column: File Cards */}
