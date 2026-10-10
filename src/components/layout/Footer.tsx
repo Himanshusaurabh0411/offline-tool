@@ -31,14 +31,16 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPrivacyPanel, onOpenComman
           {/* Col 1 & 2: Brand, Creator Profile & Contacts */}
           <div className="lg:col-span-2 space-y-5">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[#111827] dark:bg-white flex items-center justify-center text-white dark:text-[#111827] shadow-xs">
-                <span className="font-bold text-xs tracking-tight">OT</span>
+              <div className="w-8 h-8 rounded-lg bg-[#E5322D] flex items-center justify-center text-white shadow-xs">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <path d="M12 18v-5" />
+                  <polyline points="9 15 12 18 15 15" />
+                </svg>
               </div>
-              <span className="font-extrabold text-xl tracking-tight text-[#111827] dark:text-white">
-                Offline Toolkit
-              </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800">
-                100% Client-Side
+              <span className="font-black text-xl tracking-tight text-[#111827] dark:text-white">
+                Offline<span className="text-[#E5322D]">Toolkit</span>
               </span>
             </div>
 

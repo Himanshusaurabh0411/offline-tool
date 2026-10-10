@@ -197,14 +197,6 @@ export const App: React.FC = () => {
             <section className="bg-white dark:bg-[#111317] border-b border-[#E5E7EB] dark:border-slate-800 pt-16 pb-14">
               <div className="max-w-4xl mx-auto px-5 sm:px-8 text-center space-y-6">
                 
-                {/* Genuine architecture trust indicator */}
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800 text-[13.5px] font-bold text-emerald-800 dark:text-emerald-300 shadow-2xs">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>100% In-Browser & Private</span>
-                  <span className="text-emerald-300 dark:text-emerald-700">•</span>
-                  <span>Files never leave your computer</span>
-                </div>
-
                 <h1 className="text-3xl sm:text-5xl md:text-5xl font-black text-[#111827] dark:text-white tracking-tight leading-[1.2]">
                   Every tool you need to work with PDFs & Photos,{' '}
                   <span className="text-[#E5322D]">
@@ -212,7 +204,7 @@ export const App: React.FC = () => {
                   </span>
                 </h1>
 
-                <p className="text-[17px] sm:text-[19px] text-[#4B5563] dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
+                <p className="text-[18px] sm:text-[20px] text-[#4B5563] dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
                   Free, fast, and completely private. Merge, split, compress PDFs, or create instant passport photos for government job forms right in your browser.
                 </p>
 
@@ -343,12 +335,12 @@ export const App: React.FC = () => {
                           </div>
 
                           {/* Tool Name - Larger, bold font */}
-                          <h3 className="font-extrabold text-[16px] text-[#111827] dark:text-white leading-snug group-hover:text-[#E5322D] transition-colors">
+                          <h3 className="font-extrabold text-[17px] text-[#111827] dark:text-white leading-snug group-hover:text-[#E5322D] transition-colors">
                             {tool.name}
                           </h3>
 
                           {/* Tool Description - Readable, gentle gray */}
-                          <p className="text-[13px] text-[#6B7280] dark:text-slate-400 mt-2 leading-relaxed line-clamp-2">
+                          <p className="text-[13.5px] text-[#4B5563] dark:text-slate-300 mt-2 leading-relaxed line-clamp-2">
                             {tool.description}
                           </p>
                         </div>
@@ -367,50 +359,6 @@ export const App: React.FC = () => {
                   })}
                 </div>
               )}
-
-              {/* ── 3-Step Simple How It Works Banner for New Users ─── */}
-              <div className="mt-20 pt-14 border-t border-slate-200 dark:border-slate-800">
-                <div className="text-center max-w-xl mx-auto mb-10">
-                  <h3 className="text-2xl font-black text-slate-900 dark:text-white">
-                    How it works in 3 easy steps
-                  </h3>
-                  <p className="text-[14.5px] text-slate-500 dark:text-slate-400 mt-1.5">
-                    No sign-up, no software installation, and no file uploads required.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="p-6 rounded-2xl bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 shadow-xs space-y-2.5 text-center">
-                    <div className="w-12 h-12 rounded-xl bg-red-50 text-[#E5322D] font-black text-lg flex items-center justify-center mx-auto">
-                      1
-                    </div>
-                    <h4 className="text-[16px] font-bold text-slate-900 dark:text-white">Choose a Tool</h4>
-                    <p className="text-[13.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                      Select any tool from the grid above, such as Merge PDF, Passport Photo Maker, or Compress.
-                    </p>
-                  </div>
-
-                  <div className="p-6 rounded-2xl bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 shadow-xs space-y-2.5 text-center">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 font-black text-lg flex items-center justify-center mx-auto">
-                      2
-                    </div>
-                    <h4 className="text-[16px] font-bold text-slate-900 dark:text-white">Pick or Drop Files</h4>
-                    <p className="text-[13.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                      Click the big select button or drop your file. Files stay entirely in your browser RAM.
-                    </p>
-                  </div>
-
-                  <div className="p-6 rounded-2xl bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 shadow-xs space-y-2.5 text-center">
-                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 font-black text-lg flex items-center justify-center mx-auto">
-                      3
-                    </div>
-                    <h4 className="text-[16px] font-bold text-slate-900 dark:text-white">Instant Download</h4>
-                    <p className="text-[13.5px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                      Your files convert in seconds. Click download to save your new file immediately.
-                    </p>
-                  </div>
-                </div>
-              </div>
 
             </div>
           </>

@@ -99,26 +99,21 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* ── Brand Logo: Offline Toolkit ────────────────────────────── */}
         <div
-          className="flex items-center gap-3 cursor-pointer select-none shrink-0 group"
+          className="flex items-center gap-2.5 cursor-pointer select-none shrink-0 group"
           onClick={() => onSelectCategory('all')}
-          title="Offline Toolkit Homepage"
+          title="Offline Toolkit"
         >
-          <div className="w-10 h-10 rounded-xl bg-[#E5322D] flex items-center justify-center text-white shadow-md shadow-red-500/20 transition-transform group-hover:scale-105">
-            <span className="font-black text-base tracking-tight">OT</span>
+          <div className="w-9 h-9 rounded-lg bg-[#E5322D] flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <path d="M12 18v-5" />
+              <polyline points="9 15 12 18 15 15" />
+            </svg>
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <span className="font-black text-[20px] text-[#111827] dark:text-white leading-tight tracking-tight">
-                Offline<span className="text-[#E5322D]">Toolkit</span>
-              </span>
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800">
-                100% Free
-              </span>
-            </div>
-            <span className="text-[12px] font-medium text-[#6B7280] dark:text-slate-400">
-              Private In-Browser File Tools
-            </span>
-          </div>
+          <span className="font-black text-[22px] tracking-tight text-[#111827] dark:text-white">
+            Offline<span className="text-[#E5322D]">Toolkit</span>
+          </span>
         </div>
 
         {/* ── Primary Navigation ─────────────────────────────────────── */}
