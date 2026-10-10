@@ -333,8 +333,8 @@ export const App: React.FC = () => {
                   </button>
                 </div>
               ) : (
-                /* High-Quality Commercial Card Grid */
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5">
+                /* Authentic iLovePDF Responsive Grid (up to 6 columns) */
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   {filteredTools.map((tool) => {
                     const isFav = favorites.includes(tool.id);
                     return (
@@ -343,18 +343,18 @@ export const App: React.FC = () => {
                         onClick={() => openTool(tool)}
                         className="
                           group relative bg-white dark:bg-[#141518]
-                          border border-slate-200 dark:border-slate-800
-                          hover:border-slate-400 dark:hover:border-slate-600
-                          rounded-xl p-5
+                          border border-[#E5E7EB] dark:border-slate-800
+                          hover:border-[#D1D5DB] dark:hover:border-slate-600
+                          rounded-2xl p-5
                           cursor-pointer
-                          transition-all duration-150
-                          hover:shadow-md hover:-translate-y-0.5
+                          transition-all duration-200
+                          hover:shadow-lg hover:-translate-y-1
                           flex flex-col justify-between
-                          min-h-[160px] select-none
+                          min-h-[168px] select-none
                         "
                       >
                         <div>
-                          {/* Top row: Icon + Favorite toggle */}
+                          {/* Top row: Authentic iLovePDF Icon + Favorite Star */}
                           <div className="flex items-start justify-between mb-3.5">
                             <div className="transition-transform group-hover:scale-105">
                               <ILovePdfToolIcon toolId={tool.id} size={42} />
@@ -362,32 +362,32 @@ export const App: React.FC = () => {
                             <button
                               onClick={(e) => toggleFavorite(tool.id, e)}
                               className={`p-1 rounded-md text-slate-300 hover:text-amber-400 transition-colors ${
-                                isFav ? '!text-amber-400' : 'opacity-0 group-hover:opacity-100'
+                                isFav ? '!text-amber-400 opacity-100' : 'opacity-0 group-hover:opacity-100'
                               }`}
                               title="Star favorite tool"
                             >
-                              <Star className={`w-4 h-4 ${isFav ? 'fill-amber-400' : ''}`} />
+                              <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-amber-400' : ''}`} />
                             </button>
                           </div>
 
                           {/* Tool Name */}
-                          <h3 className="font-bold text-[14.5px] text-slate-900 dark:text-white leading-snug group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                          <h3 className="font-extrabold text-[15px] text-[#1F2937] dark:text-white leading-snug group-hover:text-[#E5322D] transition-colors">
                             {tool.name}
                           </h3>
 
                           {/* Tool Description */}
-                          <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed line-clamp-2">
+                          <p className="text-[12px] text-[#6B7280] dark:text-slate-400 mt-1.5 leading-relaxed line-clamp-2">
                             {tool.description}
                           </p>
                         </div>
 
-                        {/* Hover hint */}
-                        <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-semibold text-slate-400">
-                          <span className="truncate max-w-[120px] font-mono text-[10px]">
+                        {/* Extension format chips */}
+                        <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-semibold text-slate-400">
+                          <span className="truncate max-w-[130px] font-mono text-[10px] text-slate-400">
                             {tool.acceptedExtensions.slice(0, 3).map(e => `.${e}`).join(' ')}
                           </span>
-                          <span className="flex items-center gap-1 text-slate-900 dark:text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity">
-                            Open <ArrowRight className="w-3 h-3" />
+                          <span className="text-[#E5322D] opacity-0 group-hover:opacity-100 transition-opacity font-bold text-[11px]">
+                            Open →
                           </span>
                         </div>
                       </div>
