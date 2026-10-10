@@ -198,14 +198,14 @@ export const App: React.FC = () => {
               <div className="max-w-4xl mx-auto px-5 sm:px-8 text-center space-y-6">
                 
                 <h1 className="text-3xl sm:text-5xl md:text-5xl font-black text-[#111827] dark:text-white tracking-tight leading-[1.2]">
-                  Every tool you need to work with PDFs & Photos,{' '}
+                  Every tool you need to use PDFs & files,{' '}
                   <span className="text-[#E5322D]">
-                    in one place.
+                    in one place
                   </span>
                 </h1>
 
-                <p className="text-[18px] sm:text-[20px] text-[#4B5563] dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
-                  Free, fast, and completely private. Merge, split, compress PDFs, or create instant passport photos for government job forms right in your browser.
+                <p className="text-[17.5px] sm:text-[19.5px] text-[#4B5563] dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
+                  All are 100% FREE and easy to use! Merge, split, compress, convert, edit, and create passport photos with just a few clicks.
                 </p>
 
                 {/* Practical Search Box with Large Clear Input */}
@@ -307,53 +307,42 @@ export const App: React.FC = () => {
                         onClick={() => openTool(tool)}
                         className="
                           group relative bg-white dark:bg-[#141518]
-                          border-2 border-transparent hover:border-[#E5322D]
-                          shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-xl
-                          rounded-2xl p-5
+                          border border-slate-200/80 dark:border-slate-800
+                          hover:border-[#E5322D] dark:hover:border-[#E5322D]
+                          shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-xl
+                          rounded-2xl p-5 sm:p-6
                           cursor-pointer
                           transition-all duration-200
                           hover:-translate-y-1.5
-                          flex flex-col justify-between
-                          min-h-[185px] select-none
+                          flex flex-col justify-start
+                          min-h-[195px] select-none
                         "
                       >
-                        <div>
-                          {/* Top row: Authentic iLovePDF Icon + Star */}
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="transition-transform group-hover:scale-105">
-                              <ILovePdfToolIcon toolId={tool.id} size={48} />
-                            </div>
-                            <button
-                              onClick={(e) => toggleFavorite(tool.id, e)}
-                              className={`p-1.5 rounded-lg text-slate-300 hover:text-amber-400 transition-colors ${
-                                isFav ? '!text-amber-400 opacity-100' : 'opacity-0 group-hover:opacity-100'
-                              }`}
-                              title="Star favorite tool"
-                            >
-                              <Star className={`w-4 h-4 ${isFav ? 'fill-amber-400' : ''}`} />
-                            </button>
+                        {/* Top row: Authentic iLovePDF Icon + Star */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="transition-transform group-hover:scale-105">
+                            <ILovePdfToolIcon toolId={tool.id} size={50} />
                           </div>
-
-                          {/* Tool Name - Larger, bold font */}
-                          <h3 className="font-extrabold text-[17px] text-[#111827] dark:text-white leading-snug group-hover:text-[#E5322D] transition-colors">
-                            {tool.name}
-                          </h3>
-
-                          {/* Tool Description - Readable, gentle gray */}
-                          <p className="text-[13.5px] text-[#4B5563] dark:text-slate-300 mt-2 leading-relaxed line-clamp-2">
-                            {tool.description}
-                          </p>
+                          <button
+                            onClick={(e) => toggleFavorite(tool.id, e)}
+                            className={`p-1 rounded-lg text-slate-300 hover:text-amber-400 transition-colors ${
+                              isFav ? '!text-amber-400 opacity-100' : 'opacity-0 group-hover:opacity-100'
+                            }`}
+                            title="Star favorite tool"
+                          >
+                            <Star className={`w-4 h-4 ${isFav ? 'fill-amber-400' : ''}`} />
+                          </button>
                         </div>
 
-                        {/* Format extension tag */}
-                        <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-semibold text-slate-400">
-                          <span className="truncate max-w-[120px] font-mono text-[11px] text-slate-400">
-                            {tool.acceptedExtensions.slice(0, 3).map(e => `.${e}`).join(' ')}
-                          </span>
-                          <span className="text-[#E5322D] font-bold text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                            Use Tool →
-                          </span>
-                        </div>
+                        {/* Tool Name - Bold & Clear */}
+                        <h3 className="font-extrabold text-[17.5px] text-[#111827] dark:text-white leading-snug group-hover:text-[#E5322D] transition-colors">
+                          {tool.name}
+                        </h3>
+
+                        {/* Tool Description - Readable & Clean */}
+                        <p className="text-[13.5px] text-[#4B5563] dark:text-slate-300 mt-2 leading-relaxed">
+                          {tool.description}
+                        </p>
                       </div>
                     );
                   })}

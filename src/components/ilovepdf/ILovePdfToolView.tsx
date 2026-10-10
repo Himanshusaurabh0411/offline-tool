@@ -267,26 +267,17 @@ export const ILovePdfToolView: React.FC<ILovePdfToolViewProps> = ({
             </p>
           </div>
 
-          <div className="pt-2">
+          <div className="pt-4">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold text-sm shadow-md transition-all cursor-pointer hover:-translate-y-0.5 active:translate-y-0"
+              className="inline-flex items-center justify-center gap-3 px-12 py-5 rounded-2xl bg-[#E5322D] hover:bg-[#c92520] text-white font-extrabold text-xl shadow-xl shadow-red-500/25 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
             >
-              <Upload className="w-4 h-4" />
-              <span>Select {plugin.acceptedExtensions.includes('pdf') ? 'PDF Document' : 'File'}</span>
+              <Upload className="w-6 h-6" />
+              <span>Select {plugin.acceptedExtensions.includes('pdf') ? 'PDF files' : 'files'}</span>
             </button>
-            <p className="mt-3 text-xs text-slate-400">or drop files anywhere on this window</p>
-          </div>
-
-          <div className="pt-10 flex items-center justify-center gap-6 text-xs text-slate-400 font-medium">
-            <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-              <ShieldCheck className="w-4 h-4" />
-              <span>100% In-Browser Execution</span>
-            </div>
-            <span>•</span>
-            <div>Zero Server Uploads</div>
-            <span>•</span>
-            <div>Works in Airplane Mode</div>
+            <p className="mt-3 text-sm text-slate-400 font-medium">
+              or drop {plugin.acceptedExtensions.includes('pdf') ? 'PDFs' : 'files'} here
+            </p>
           </div>
         </div>
       )}
@@ -478,7 +469,7 @@ export const ILovePdfToolView: React.FC<ILovePdfToolViewProps> = ({
               <button
                 onClick={handleRun}
                 disabled={isProcessing}
-                className="w-full h-11 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 disabled:opacity-50 text-white dark:text-slate-900 font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full h-13 px-6 rounded-xl bg-[#E5322D] hover:bg-[#c92520] disabled:opacity-50 text-white font-extrabold text-sm shadow-md shadow-red-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
               >
                 {isProcessing ? (
                   <>
@@ -541,7 +532,7 @@ export const ILovePdfToolView: React.FC<ILovePdfToolViewProps> = ({
 
                 <button
                   onClick={() => handleDownload(res)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold transition-colors cursor-pointer shrink-0"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#E5322D] hover:bg-[#c92520] text-white text-xs font-bold transition-all shadow-sm shadow-red-500/20 cursor-pointer shrink-0 hover:scale-105 active:scale-95"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Download</span>

@@ -69,10 +69,10 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const navLinkCls = `
-    px-3.5 py-2 text-[14.5px] font-bold tracking-tight rounded-xl
-    text-[#374151] dark:text-slate-200
+    px-3.5 py-2 text-[13.5px] font-extrabold uppercase tracking-wide rounded-lg
+    text-[#1F2937] dark:text-slate-200
     hover:text-[#E5322D] dark:hover:text-[#E5322D]
-    hover:bg-red-50/50 dark:hover:bg-slate-800
+    hover:bg-red-50/40 dark:hover:bg-slate-800/60
     transition-all duration-150 cursor-pointer whitespace-nowrap
   `;
 
