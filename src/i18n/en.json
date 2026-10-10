@@ -1,0 +1,72 @@
+{
+  "app": {
+    "name": "OfflineForge",
+    "tagline": "100% Client-Side Private File Toolkit",
+    "offline_badge": "Offline Ready",
+    "online_badge": "Connected (No Telemetry)",
+    "airplane_mode_tested": "Airplane Mode Tested"
+  },
+  "nav": {
+    "all_tools": "All Tools",
+    "pdf": "PDF",
+    "documents": "Documents",
+    "images": "Images",
+    "audio_video": "Audio & Video",
+    "archives": "Archives & Data",
+    "dev_tools": "Dev & Utilities",
+    "workflow_builder": "Workflow Builder",
+    "privacy_panel": "Privacy Proof",
+    "favorites": "Favorites",
+    "recent": "Recent"
+  },
+  "search": {
+    "placeholder": "Search any tool or action (e.g., merge PDF, compress, OCR, convert)...",
+    "command_hint": "Press Ctrl + K to open launcher",
+    "no_results": "No tools found matching"
+  },
+  "privacy": {
+    "proof_title": "Privacy Proof Panel",
+    "zero_egress": "0 Bytes Egress Guaranteed",
+    "egress_desc": "All operations execute directly inside your browser. No files or telemetry ever leave your device.",
+    "network_monitor": "Live Network Egress Monitor",
+    "bytes_sent": "Bytes Sent to Server",
+    "external_requests": "External Requests",
+    "airplane_title": "How to verify offline security?",
+    "airplane_step1": "1. Disconnect your Wi-Fi or turn on Airplane Mode.",
+    "airplane_step2": "2. Reload or use any tool in OfflineForge.",
+    "airplane_step3": "3. Notice that everything processes with zero degradation.",
+    "memory_title": "Browser Memory & Storage",
+    "in_memory_files": "Files active in local cache",
+    "wipe_button": "Wipe Everything Now",
+    "wipe_confirm": "Are you sure? This will delete all temporary files, local history, and cache from your browser.",
+    "wipe_success": "All browser storage and memory was successfully wiped!"
+  },
+  "dropzone": {
+    "title": "Smart Drop Zone",
+    "subtitle": "Drop ANY file here — we'll detect its format and suggest the best actions",
+    "browse": "or browse from your device",
+    "detected_type": "Detected Format",
+    "suggested_actions": "Suggested Quick Actions"
+  },
+  "tool": {
+    "run": "Process File",
+    "processing": "Processing...",
+    "cancel": "Cancel",
+    "download": "Download Result",
+    "download_all_zip": "Download All as ZIP",
+    "send_to_next": "Send to Another Tool",
+    "quality_size": "Quality vs. Size",
+    "estimated_size": "Estimated Output",
+    "original_size": "Original Size",
+    "history_versions": "Version Timeline",
+    "batch_queue": "Batch Queue"
+  },
+  "workflow": {
+    "title": "Workflow Builder",
+    "subtitle": "Chain multiple tools into an automated offline pipeline",
+    "add_step": "Add Step",
+    "run_pipeline": "Run Pipeline on Files",
+    "export_json": "Export JSON",
+    "import_json": "Import JSON"
+  }
+}
