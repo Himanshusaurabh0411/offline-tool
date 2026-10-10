@@ -68,7 +68,7 @@ export const AiBackgroundRemoverStudio: React.FC<AiBackgroundRemoverStudioProps>
   const [previewCompositeUrl, setPreviewCompositeUrl] = useState<string | null>(null);
 
   // Engine indicator
-  const [usedEngine, setUsedEngine] = useState<'ai' | 'fallback'>('ai');
+  const [usedEngine, setUsedEngine] = useState<'rmbg' | 'modnet' | 'fallback'>('rmbg');
 
   const containerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<boolean>(false);
@@ -222,12 +222,19 @@ export const AiBackgroundRemoverStudio: React.FC<AiBackgroundRemoverStudioProps>
         </button>
 
         <div className="flex items-center gap-3">
-          {usedEngine === 'ai' ? (
+          {usedEngine === 'rmbg' && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
               <Cpu className="w-3.5 h-3.5" />
-              <span>MODNet Neural Matting Active</span>
+              <span>Bria RMBG-1.4 Neural Matting (1024px)</span>
             </span>
-          ) : (
+          )}
+          {usedEngine === 'modnet' && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-xs font-bold border border-blue-200 dark:border-blue-800">
+              <Cpu className="w-3.5 h-3.5" />
+              <span>MODNet Matting Active</span>
+            </span>
+          )}
+          {usedEngine === 'fallback' && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 text-xs font-bold border border-amber-200 dark:border-amber-800">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Offline Matting Fallback</span>
@@ -557,7 +564,7 @@ export const AiBackgroundRemoverStudio: React.FC<AiBackgroundRemoverStudioProps>
               <div className="flex justify-between">
                 <span>Inference:</span>
                 <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                  {usedEngine === 'ai' ? 'MODNet Neural Matting' : 'Perceptual Boundary'}
+                  {usedEngine === 'rmbg' ? 'Bria RMBG-1.4 (1024×1024)' : usedEngine === 'modnet' ? 'MODNet Portrait' : 'Perceptual Boundary'}
                 </span>
               </div>
               <div className="flex justify-between">

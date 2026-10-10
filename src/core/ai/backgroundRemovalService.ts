@@ -1,148 +1,221 @@
-import { pipeline, env, RawImage } from '@huggingface/transformers';
+import { AutoModel, AutoProcessor, RawImage, env, pipeline } from '@huggingface/transformers';
 import { removeOrReplaceBackground } from '../../tools/images/bgRemovalHelper';
 
-// Configure transformers environment for optimal browser performance
+// Configure transformers environment for browser execution
 env.allowLocalModels = false;
 env.useBrowserCache = typeof globalThis !== 'undefined' && 'caches' in globalThis;
 
-// Singleton pipeline instance to avoid duplicate model loads
-let segmenterPipeline: any = null;
-let pipelineLoadingPromise: Promise<any> | null = null;
+// Cache loaded model & processor instances
+let rmbgModel: any = null;
+let rmbgProcessor: any = null;
+let modelLoadingPromise: Promise<void> | null = null;
+
+let modnetPipeline: any = null;
 
 export interface RemovalProgressCallback {
   (stage: 'downloading' | 'processing' | 'finishing', percent: number, detail?: string): void;
 }
 
 /**
- * Initializes or reuses the background-removal pipeline (Xenova/modnet)
+ * Initializes the state-of-the-art RMBG-1.4 AI model (Bria AI)
  */
-export async function getSegmenterPipeline(onProgress?: RemovalProgressCallback): Promise<any> {
-  if (segmenterPipeline) {
-    return segmenterPipeline;
+async function loadRmbgModel(onProgress?: RemovalProgressCallback): Promise<{ model: any; processor: any }> {
+  if (rmbgModel && rmbgProcessor) {
+    return { model: rmbgModel, processor: rmbgProcessor };
   }
 
-  if (pipelineLoadingPromise) {
-    return pipelineLoadingPromise;
+  if (!modelLoadingPromise) {
+    modelLoadingPromise = (async () => {
+      const progressTracker = (item: any) => {
+        if (!onProgress) return;
+        if (item.status === 'progress' && item.total) {
+          const pct = Math.round((item.loaded / item.total) * 100);
+          const fname = item.file ? item.file.split('/').pop() : 'model weights';
+          onProgress('downloading', Math.min(85, Math.max(10, pct)), `Downloading ${fname} (${pct}%)...`);
+        } else if (item.status === 'initiate') {
+          onProgress('downloading', 10, 'Connecting to AI model repository...');
+        }
+      };
+
+      const [model, processor] = await Promise.all([
+        AutoModel.from_pretrained('briaai/RMBG-1.4', { progress_callback: progressTracker }),
+        AutoProcessor.from_pretrained('briaai/RMBG-1.4', { progress_callback: progressTracker }),
+      ]);
+
+      rmbgModel = model;
+      rmbgProcessor = processor;
+    })();
   }
 
-  pipelineLoadingPromise = (async () => {
-    try {
-      const p = await pipeline('image-segmentation', 'Xenova/modnet', {
-        progress_callback: (info: any) => {
-          if (!onProgress) return;
-          if (info.status === 'progress' && info.total) {
-            const pct = Math.round((info.loaded / info.total) * 100);
-            const file = info.file ? info.file.split('/').pop() : 'model weights';
-            onProgress('downloading', Math.min(85, Math.max(5, pct)), `Downloading ${file} (${pct}%)...`);
-          } else if (info.status === 'initiate') {
-            onProgress('downloading', 10, 'Initializing model download...');
-          } else if (info.status === 'ready') {
-            onProgress('processing', 90, 'Model ready for inference.');
-          }
-        },
-      });
-      segmenterPipeline = p;
-      return p;
-    } finally {
-      pipelineLoadingPromise = null;
-    }
-  })();
-
-  return pipelineLoadingPromise;
+  await modelLoadingPromise;
+  return { model: rmbgModel, processor: rmbgProcessor };
 }
 
 /**
- * Executes AI background removal on an image blob using Xenova/modnet.
- * Automatically falls back to high-accuracy perceptual matting if offline/failed.
+ * Fallback to Xenova/modnet pipeline if RMBG-1.4 fails or on constrained devices
+ */
+async function loadModnetPipeline(onProgress?: RemovalProgressCallback): Promise<any> {
+  if (modnetPipeline) return modnetPipeline;
+
+  modnetPipeline = await pipeline('image-segmentation', 'Xenova/modnet', {
+    progress_callback: (item: any) => {
+      if (!onProgress) return;
+      if (item.status === 'progress' && item.total) {
+        const pct = Math.round((item.loaded / item.total) * 100);
+        onProgress('downloading', Math.min(85, Math.max(10, pct)), `Downloading MODNet (${pct}%)...`);
+      }
+    },
+  });
+  return modnetPipeline;
+}
+
+/**
+ * Executes AI background removal on an image blob with high precision.
+ * 1. Tries Bria AI RMBG-1.4 (1024x1024 studio precision for humans & objects)
+ * 2. Falls back to Xenova/modnet (portrait matting)
+ * 3. Falls back to offline perceptual boundary matting (zero network)
  */
 export async function removeImageBackground(
   imageBlob: Blob,
   onProgress?: RemovalProgressCallback
-): Promise<{ blob: Blob; engine: 'ai' | 'fallback' }> {
+): Promise<{ blob: Blob; engine: 'rmbg' | 'modnet' | 'fallback' }> {
   try {
-    if (onProgress) onProgress('downloading', 5, 'Preparing neural network pipeline...');
+    const [rawImg, imgBitmap] = await Promise.all([
+      RawImage.fromBlob(imageBlob),
+      createImageBitmap(imageBlob),
+    ]);
 
-    const segmenter = await getSegmenterPipeline(onProgress);
+    const origW = imgBitmap.width;
+    const origH = imgBitmap.height;
 
-    if (onProgress) onProgress('processing', 90, 'Executing neural matting inference...');
-
-    // Load original image into RawImage and HTMLImageElement for exact dimensions
-    const blobUrl = URL.createObjectURL(imageBlob);
+    // ── Attempt 1: State-of-the-art RMBG-1.4 ──────────────────────────────────
     try {
-      const [rawImg, htmlImg] = await Promise.all([
-        RawImage.fromBlob(imageBlob),
-        loadImage(blobUrl),
-      ]);
+      if (onProgress) onProgress('downloading', 10, 'Initializing RMBG-1.4 neural network...');
+      const { model, processor } = await loadRmbgModel(onProgress);
 
-      const origW = htmlImg.naturalWidth || htmlImg.width;
-      const origH = htmlImg.naturalHeight || htmlImg.height;
+      if (onProgress) onProgress('processing', 88, 'Executing deep neural matting at 1024×1024...');
+      const { pixel_values } = await processor(rawImg);
+      const { output } = await model({ input: pixel_values });
 
-      // Run inference
+      if (onProgress) onProgress('finishing', 95, 'Refining alpha matte and preserving original RGB colors...');
+
+      const maskFloatData = output.data;
+      const maskUint8 = new Uint8ClampedArray(1024 * 1024);
+      for (let i = 0; i < maskFloatData.length; i++) {
+        maskUint8[i] = Math.round(Math.max(0, Math.min(1, maskFloatData[i])) * 255);
+      }
+
+      // 1024x1024 canvas for model output
+      const modelCanvas = document.createElement('canvas');
+      modelCanvas.width = 1024;
+      modelCanvas.height = 1024;
+      const mCtx = modelCanvas.getContext('2d');
+      const mImgData = mCtx && mCtx.createImageData
+        ? mCtx.createImageData(1024, 1024)
+        : (typeof ImageData !== 'undefined'
+            ? new ImageData(1024, 1024)
+            : ({ data: new Uint8ClampedArray(1024 * 1024 * 4) } as any));
+      const mData = mImgData.data;
+
+      for (let i = 0; i < maskUint8.length; i++) {
+        const val = maskUint8[i];
+        const p = i * 4;
+        mData[p] = val;
+        mData[p + 1] = val;
+        mData[p + 2] = val;
+        mData[p + 3] = 255;
+      }
+      if (mCtx) {
+        mCtx.putImageData(mImgData, 0, 0);
+      }
+
+      // Resample mask to original dimensions
+      const resampledMask = resampleMaskToSize(modelCanvas, origW, origH);
+
+      // Apply alpha mask to original image
+      const transparentBlob = applyMaskToOriginal(imgBitmap, resampledMask, origW, origH);
+      if (onProgress) onProgress('finishing', 100, 'Complete (RMBG-1.4)');
+
+      return { blob: await transparentBlob, engine: 'rmbg' };
+    } catch (rmbgErr) {
+      console.warn('RMBG-1.4 inference error, attempting MODNet fallback:', rmbgErr);
+    }
+
+    // ── Attempt 2: Xenova/modnet fallback ─────────────────────────────────────
+    try {
+      if (onProgress) onProgress('downloading', 20, 'Loading MODNet neural network...');
+      const segmenter = await loadModnetPipeline(onProgress);
+
+      if (onProgress) onProgress('processing', 90, 'Executing MODNet portrait matting...');
       const result = await segmenter(rawImg);
       const mask = result[0]?.mask;
-      if (!mask) {
-        throw new Error('Neural network returned empty segmentation mask');
+      if (!mask) throw new Error('MODNet empty mask');
+
+      let rawMaskCanvas: HTMLCanvasElement;
+      try {
+        rawMaskCanvas = mask.toCanvas ? mask.toCanvas() : createMaskCanvasFromRaw(mask);
+      } catch {
+        rawMaskCanvas = createMaskCanvasFromRaw(mask);
       }
+      const resampledMask = resampleMaskToSize(rawMaskCanvas, origW, origH);
+      const transparentBlob = applyMaskToOriginal(imgBitmap, resampledMask, origW, origH);
 
-      if (onProgress) onProgress('finishing', 95, 'Refining alpha matte and preserving RGB detail...');
-
-      // Convert mask to canvas and resample to original dimensions
-      const maskCanvas = document.createElement('canvas');
-      maskCanvas.width = origW;
-      maskCanvas.height = origH;
-      const maskCtx = maskCanvas.getContext('2d')!;
-      maskCtx.imageSmoothingEnabled = true;
-      maskCtx.imageSmoothingQuality = 'high';
-
-      // Draw mask output onto resampled canvas
-      const rawMaskCanvas = mask.toCanvas ? mask.toCanvas() : createMaskCanvasFromRaw(mask);
-      maskCtx.drawImage(rawMaskCanvas, 0, 0, origW, origH);
-      const maskData = maskCtx.getImageData(0, 0, origW, origH).data;
-
-      // Draw original image to output canvas
-      const outputCanvas = document.createElement('canvas');
-      outputCanvas.width = origW;
-      outputCanvas.height = origH;
-      const outCtx = outputCanvas.getContext('2d')!;
-      outCtx.drawImage(htmlImg, 0, 0);
-      const outImgData = outCtx.getImageData(0, 0, origW, origH);
-      const outData = outImgData.data;
-
-      // Apply alpha channel from mask to original image, preserving 100% RGB fidelity
-      for (let i = 0; i < outData.length; i += 4) {
-        // mask is grayscale: maskData[i] is alpha intensity (0 to 255)
-        const alpha = maskData[i];
-        outData[i + 3] = Math.round((outData[i + 3] / 255) * alpha);
-      }
-      outCtx.putImageData(outImgData, 0, 0);
-
-      const transparentBlob: Blob = await new Promise((res, rej) => {
-        outputCanvas.toBlob((b) => (b ? res(b) : rej(new Error('Canvas export failed'))), 'image/png');
-      });
-
-      if (onProgress) onProgress('finishing', 100, 'Complete');
-      return { blob: transparentBlob, engine: 'ai' };
-    } finally {
-      URL.revokeObjectURL(blobUrl);
+      if (onProgress) onProgress('finishing', 100, 'Complete (MODNet)');
+      return { blob: await transparentBlob, engine: 'modnet' };
+    } catch (modnetErr) {
+      console.warn('MODNet inference error, falling back to perceptual boundary matting:', modnetErr);
     }
-  } catch (err: any) {
-    console.warn('AI neural network inference failed or offline, triggering perceptual matting fallback:', err);
-    if (onProgress) onProgress('processing', 60, 'Applying offline perceptual matting fallback...');
 
+    // ── Attempt 3: High-accuracy offline boundary matting fallback ────────────
+    if (onProgress) onProgress('processing', 60, 'Applying offline perceptual matting fallback...');
     const fallbackBlob = await runBoundaryFallback(imageBlob);
     if (onProgress) onProgress('finishing', 100, 'Complete (perceptual boundary fallback)');
+    return { blob: fallbackBlob, engine: 'fallback' };
+
+  } catch (err: any) {
+    console.error('removeImageBackground unexpected error:', err);
+    const fallbackBlob = await runBoundaryFallback(imageBlob);
     return { blob: fallbackBlob, engine: 'fallback' };
   }
 }
 
-/** Helper to load an HTMLImageElement from a URL */
-function loadImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = (e) => reject(new Error('Failed to load image from blob URL'));
-    img.src = url;
+/** Resamples a canvas mask to target dimensions with high-quality smoothing */
+function resampleMaskToSize(sourceCanvas: HTMLCanvasElement, targetW: number, targetH: number): Uint8ClampedArray {
+  const maskCanvas = document.createElement('canvas');
+  maskCanvas.width = targetW;
+  maskCanvas.height = targetH;
+  const maskCtx = maskCanvas.getContext('2d')!;
+  maskCtx.imageSmoothingEnabled = true;
+  maskCtx.imageSmoothingQuality = 'high';
+  maskCtx.drawImage(sourceCanvas, 0, 0, targetW, targetH);
+  return maskCtx.getImageData(0, 0, targetW, targetH).data;
+}
+
+/** Blends resampled mask alpha into original image while preserving 100% RGB fidelity */
+function applyMaskToOriginal(
+  imgSource: CanvasImageSource,
+  resampledMaskData: Uint8ClampedArray,
+  width: number,
+  height: number
+): Promise<Blob> {
+  const outputCanvas = document.createElement('canvas');
+  outputCanvas.width = width;
+  outputCanvas.height = height;
+  const outCtx = outputCanvas.getContext('2d')!;
+  outCtx.drawImage(imgSource, 0, 0);
+
+  const outImgData = outCtx.getImageData(0, 0, width, height);
+  const outData = outImgData.data;
+
+  for (let i = 0; i < outData.length; i += 4) {
+    const maskVal = resampledMaskData[i]; // red channel represents intensity 0-255
+    // Blend with existing alpha channel to support transparent source PNGs
+    outData[i + 3] = Math.round((outData[i + 3] / 255) * maskVal);
+  }
+  outCtx.putImageData(outImgData, 0, 0);
+
+  return new Promise((res, rej) => {
+    outputCanvas.toBlob((b) => (b ? res(b) : rej(new Error('Export failed'))), 'image/png');
   });
 }
 
