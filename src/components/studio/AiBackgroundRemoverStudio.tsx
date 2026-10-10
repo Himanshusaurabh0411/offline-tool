@@ -8,15 +8,17 @@ import {
   Check,
   Split,
   Columns,
-  RotateCcw,
   Upload,
   AlertCircle,
   ShieldCheck,
   Cpu
 } from 'lucide-react';
 import { ToolInputFile } from '../../core/plugins/types';
-import { removeBackground } from '@imgly/background-removal';
-import { removeOrReplaceBackground } from '../../tools/images/bgRemovalHelper';
+import {
+  removeImageBackground,
+  compositeCutoutOnColor,
+  RemovalProgressCallback
+} from '../../core/ai/backgroundRemovalService';
 
 interface AiBackgroundRemoverStudioProps {
   file: File | ToolInputFile;
@@ -65,8 +67,8 @@ export const AiBackgroundRemoverStudio: React.FC<AiBackgroundRemoverStudioProps>
   const [customColor, setCustomColor] = useState<string>('#FFFFFF');
   const [previewCompositeUrl, setPreviewCompositeUrl] = useState<string | null>(null);
 
-  // Fallback indicator
-  const [usedEngine, setUsedEngine] = useState<'ai' | 'boundary'>('ai');
+  // Engine indicator
+  const [usedEngine, setUsedEngine] = useState<'ai' | 'fallback'>('ai');
 
   const containerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<boolean>(false);
@@ -90,130 +92,66 @@ export const AiBackgroundRemoverStudio: React.FC<AiBackgroundRemoverStudioProps>
   const processImageWithAI = async (blob: Blob) => {
     setStatus('downloading');
     setProgress(5);
-    setProgressMessage('Loading AI neural network (ISNet ONNX)...');
+    setProgressMessage('Loading AI neural network (MODNet ONNX)...');
     setErrorMessage(null);
     abortControllerRef.current = false;
 
-    try {
-      // Execute IMG.LY in-browser deep learning model
-      const result = await removeBackground(blob, {
-        model: 'isnet_quint8', // high-speed quantized model
-        progress: (key: string, current: number, total: number) => {
-          if (abortControllerRef.current) return;
-          if (key.includes('fetch')) {
-            setStatus('downloading');
-            const percent = total > 0 ? Math.round((current / total) * 100) : 50;
-            setProgress(Math.min(75, Math.max(10, percent)));
-            setProgressMessage(`Downloading neural network model (${percent}%)...`);
-          } else if (key.includes('compute') || key.includes('inference')) {
-            setStatus('processing');
-            setProgress(85);
-            setProgressMessage('Segmenting foreground subject with AI...');
-          }
-        },
-        output: {
-          format: 'image/png',
-          quality: 1.0,
-        },
-      });
+    const onProgress: RemovalProgressCallback = (stage, pct, detail) => {
+      if (abortControllerRef.current) return;
+      if (stage === 'downloading') {
+        setStatus('downloading');
+        setProgress(pct);
+        setProgressMessage(detail || `Downloading AI weights (${pct}%)...`);
+      } else if (stage === 'processing') {
+        setStatus('processing');
+        setProgress(pct);
+        setProgressMessage(detail || 'Executing neural matting inference...');
+      } else if (stage === 'finishing') {
+        setProgress(pct);
+        setProgressMessage(detail || 'Refining alpha matte...');
+      }
+    };
 
+    try {
+      const { blob: outputBlob, engine } = await removeImageBackground(blob, onProgress);
       if (abortControllerRef.current) return;
 
-      const url = URL.createObjectURL(result);
-      setCutoutBlob(result);
+      const url = URL.createObjectURL(outputBlob);
+      setCutoutBlob(outputBlob);
       setCutoutUrl(url);
-      setUsedEngine('ai');
+      setUsedEngine(engine);
       setProgress(100);
       setStatus('success');
       setProgressMessage('Background removed successfully!');
     } catch (err: any) {
-      console.warn('AI in-browser model failed or offline without cache, trying local boundary engine:', err);
-      // Fallback to high-accuracy offline boundary engine
-      try {
-        setStatus('processing');
-        setProgress(60);
-        setProgressMessage('Applying offline perceptual matting fallback...');
-
-        const fallbackBlob = await runBoundaryFallback(blob);
-        const url = URL.createObjectURL(fallbackBlob);
-        setCutoutBlob(fallbackBlob);
-        setCutoutUrl(url);
-        setUsedEngine('boundary');
-        setProgress(100);
-        setStatus('success');
-        setProgressMessage('Processed with high-accuracy boundary matting.');
-      } catch (fallbackErr: any) {
-        setStatus('error');
-        setErrorMessage(
-          err.message || 'Background removal encountered an error. Please try again or upload a different image.'
-        );
-      }
+      if (abortControllerRef.current) return;
+      setStatus('error');
+      setErrorMessage(
+        err.message || 'Background removal encountered an error. Please try again or upload a different image.'
+      );
     }
-  };
-
-  // Local fallback matting using canvas & YCbCr skin protection
-  const runBoundaryFallback = async (blob: Blob): Promise<Blob> => {
-    const imgBitmap = await createImageBitmap(blob);
-    const canvas = document.createElement('canvas');
-    canvas.width = imgBitmap.width;
-    canvas.height = imgBitmap.height;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
-
-    ctx.drawImage(imgBitmap, 0, 0);
-    removeOrReplaceBackground(ctx, canvas.width, canvas.height, {
-      tolerance: 32,
-      replaceBgColor: 'transparent',
-      protectSkin: true,
-    });
-
-    return new Promise((resolve, reject) => {
-      canvas.toBlob((b) => {
-        if (b) resolve(b);
-        else reject(new Error('Failed to create cutout blob'));
-      }, 'image/png');
-    });
   };
 
   // Update composite preview when background selection changes
   useEffect(() => {
-    if (!cutoutBlob || selectedBg === 'transparent') {
+    if (!cutoutBlob) {
       setPreviewCompositeUrl(null);
       return;
     }
 
-    const img = new Image();
-    const url = URL.createObjectURL(cutoutBlob);
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d')!;
+    if (selectedBg === 'transparent') {
+      setPreviewCompositeUrl(cutoutUrl);
+      return;
+    }
 
-      // Fill background
-      let fill = '#FFFFFF';
-      if (selectedBg === 'white') fill = '#FFFFFF';
-      else if (selectedBg === 'black') fill = '#000000';
-      else if (selectedBg === 'lightgrey') fill = '#F3F4F6';
-      else if (selectedBg === 'lightblue') fill = '#CAE8FF';
-      else if (selectedBg === 'blue') fill = '#2563EB';
-      else if (selectedBg === 'red') fill = '#DC2626';
-      else if (selectedBg === 'custom') fill = customColor;
-
-      ctx.fillStyle = fill;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
-
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const compUrl = URL.createObjectURL(blob);
-          setPreviewCompositeUrl(compUrl);
-        }
-      }, 'image/png');
-
-      URL.revokeObjectURL(url);
-    };
-    img.src = url;
-  }, [cutoutBlob, selectedBg, customColor]);
+    const activeColor = selectedBg === 'custom' ? customColor : selectedBg;
+    compositeCutoutOnColor(cutoutBlob, activeColor)
+      .then((compBlob) => {
+        const compUrl = URL.createObjectURL(compBlob);
+        setPreviewCompositeUrl(compUrl);
+      })
+      .catch((err) => console.error('Compositing failed:', err));
+  }, [cutoutBlob, cutoutUrl, selectedBg, customColor]);
 
   // Handle slider drag interaction
   const handleSliderMove = useCallback((clientX: number) => {
@@ -287,12 +225,12 @@ export const AiBackgroundRemoverStudio: React.FC<AiBackgroundRemoverStudioProps>
           {usedEngine === 'ai' ? (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
               <Cpu className="w-3.5 h-3.5" />
-              <span>Deep Learning AI Active</span>
+              <span>MODNet Neural Matting Active</span>
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 text-xs font-bold border border-amber-200 dark:border-amber-800">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Boundary Matting Fallback</span>
+              <span>Offline Matting Fallback</span>
             </span>
           )}
 
@@ -375,7 +313,7 @@ export const AiBackgroundRemoverStudio: React.FC<AiBackgroundRemoverStudioProps>
                     {progressMessage}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mb-4">
-                    Inference executes 100% locally on your machine via WebAssembly & Web Workers.
+                    Inference executes 100% locally on your machine via WebAssembly & WebGPU.
                   </p>
                   
                   {/* Progress bar */}
@@ -429,7 +367,7 @@ export const AiBackgroundRemoverStudio: React.FC<AiBackgroundRemoverStudioProps>
                     }}
                   >
                     <img
-                      src={cutoutUrl}
+                      src={previewCompositeUrl || cutoutUrl}
                       alt="Processed foreground"
                       className="max-h-full max-w-full object-contain pointer-events-none"
                     />
@@ -495,7 +433,7 @@ export const AiBackgroundRemoverStudio: React.FC<AiBackgroundRemoverStudioProps>
                         backgroundColor: selectedBg !== 'transparent' ? (selectedBg === 'custom' ? customColor : BG_PRESETS.find(p => p.id === selectedBg)?.color) : undefined
                       }}
                     >
-                      <img src={cutoutUrl} alt="Cutout" className="max-h-full max-w-full object-contain" />
+                      <img src={previewCompositeUrl || cutoutUrl} alt="Cutout" className="max-h-full max-w-full object-contain" />
                     </div>
                   </div>
                 </div>
@@ -619,7 +557,7 @@ export const AiBackgroundRemoverStudio: React.FC<AiBackgroundRemoverStudioProps>
               <div className="flex justify-between">
                 <span>Inference:</span>
                 <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                  {usedEngine === 'ai' ? 'Neural Network ISNet' : 'Perceptual Boundary'}
+                  {usedEngine === 'ai' ? 'MODNet Neural Matting' : 'Perceptual Boundary'}
                 </span>
               </div>
               <div className="flex justify-between">
