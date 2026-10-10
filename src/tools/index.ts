@@ -76,45 +76,16 @@ import { passportPhotoPlugin } from './images/passportPhoto';
 import { customSizeReducerPlugin } from './images/customSizeReducer';
 
 export function registerInitialPlugins() {
-  // Dev & Core
-  pluginRegistry.register(hashCheckerPlugin);
-  pluginRegistry.register(base64ToolPlugin);
-  pluginRegistry.register(metadataScrubberPlugin);
-  pluginRegistry.register(fileHealthCheckPlugin);
-  pluginRegistry.register(wordCounterPlugin);
-  pluginRegistry.register(diffCheckerPlugin);
-  pluginRegistry.register(regexTesterPlugin);
-  pluginRegistry.register(unitConverterPlugin);
-
-  // Documents
-  pluginRegistry.register(docxConverterPlugin);
-  pluginRegistry.register(markdownHtmlPlugin);
-  pluginRegistry.register(spreadsheetConverterPlugin);
-
-  // Archives & Data
-  pluginRegistry.register(zipCreatePlugin);
-  pluginRegistry.register(zipExtractPlugin);
-  pluginRegistry.register(bulkRenamePlugin);
-  pluginRegistry.register(jsonYamlConverterPlugin);
-  pluginRegistry.register(xmlJsonConverterPlugin);
-  pluginRegistry.register(qrGeneratorPlugin);
-
-  // Media (Audio / Video)
-  pluginRegistry.register(audioConvertPlugin);
-  pluginRegistry.register(audioTrimPlugin);
-  pluginRegistry.register(videoExtractAudioPlugin);
-  pluginRegistry.register(mediaSpeedPlugin);
-
-  // Local AI
-  pluginRegistry.register(aiSummarizePlugin);
-  pluginRegistry.register(aiExtractInfoPlugin);
-  pluginRegistry.register(aiTranslatePlugin);
-  pluginRegistry.register(aiSpeechToTextPlugin);
-  pluginRegistry.register(aiImageCaptionPlugin);
-
-  // PDF Suite
+  // 1. PDF Suite (Flagship)
   pluginRegistry.register(pdfMergePlugin);
   pluginRegistry.register(pdfSplitPlugin);
+  pluginRegistry.register(pdfCompressPlugin);
+  pluginRegistry.register(pdfToWordPlugin);
+  pluginRegistry.register(wordToPdfPlugin);
+  pluginRegistry.register(pdfToExcelPlugin);
+  pluginRegistry.register(excelToPdfPlugin);
+  pluginRegistry.register(imagesToPdfPlugin);
+  pluginRegistry.register(pdfToImagesPlugin);
   pluginRegistry.register(pdfRemovePagesPlugin);
   pluginRegistry.register(pdfExtractPagesPlugin);
   pluginRegistry.register(pdfOrganizePlugin);
@@ -125,35 +96,64 @@ export function registerInitialPlugins() {
   pluginRegistry.register(pdfFlattenPlugin);
   pluginRegistry.register(pdfProtectPlugin);
   pluginRegistry.register(pdfUnlockPlugin);
-  pluginRegistry.register(pdfCompressPlugin);
   pluginRegistry.register(pdfRepairPlugin);
   pluginRegistry.register(pdfSignPlugin);
   pluginRegistry.register(pdfFillFormsPlugin);
   pluginRegistry.register(pdfTrueRedactionPlugin);
-  pluginRegistry.register(imagesToPdfPlugin);
-  pluginRegistry.register(wordToPdfPlugin);
-  pluginRegistry.register(excelToPdfPlugin);
   pluginRegistry.register(textToPdfPlugin);
-  pluginRegistry.register(pdfToImagesPlugin);
-  pluginRegistry.register(pdfToWordPlugin);
-  pluginRegistry.register(pdfToExcelPlugin);
   pluginRegistry.register(pdfToTextPlugin);
   pluginRegistry.register(pdfVisualDiffPlugin);
   pluginRegistry.register(pdfOcrPlugin);
   pluginRegistry.register(pdfEditPlugin);
 
-  // Image Suite
+  // 2. Image Suite & Government Photos
+  pluginRegistry.register(passportPhotoPlugin);
+  pluginRegistry.register(customSizeReducerPlugin);
   pluginRegistry.register(imageConvertPlugin);
   pluginRegistry.register(imageResizePlugin);
   pluginRegistry.register(imageCompressPlugin);
   pluginRegistry.register(imageCropPlugin);
   pluginRegistry.register(imageRotatePlugin);
+  pluginRegistry.register(imageRemoveBgPlugin);
   pluginRegistry.register(imageExifPlugin);
   pluginRegistry.register(imageAsciiPlugin);
   pluginRegistry.register(imageMemePlugin);
   pluginRegistry.register(imageCollagePlugin);
   pluginRegistry.register(imageUpscalePlugin);
-  pluginRegistry.register(imageRemoveBgPlugin);
-  pluginRegistry.register(passportPhotoPlugin);
-  pluginRegistry.register(customSizeReducerPlugin);
+
+  // 3. Documents
+  pluginRegistry.register(docxConverterPlugin);
+  pluginRegistry.register(markdownHtmlPlugin);
+  pluginRegistry.register(spreadsheetConverterPlugin);
+
+  // 4. Archives & Data
+  pluginRegistry.register(zipCreatePlugin);
+  pluginRegistry.register(zipExtractPlugin);
+  pluginRegistry.register(bulkRenamePlugin);
+  pluginRegistry.register(jsonYamlConverterPlugin);
+  pluginRegistry.register(xmlJsonConverterPlugin);
+  pluginRegistry.register(qrGeneratorPlugin);
+
+  // 5. Media (Audio / Video)
+  pluginRegistry.register(audioConvertPlugin);
+  pluginRegistry.register(audioTrimPlugin);
+  pluginRegistry.register(videoExtractAudioPlugin);
+  pluginRegistry.register(mediaSpeedPlugin);
+
+  // 6. Dev & Core
+  pluginRegistry.register(hashCheckerPlugin);
+  pluginRegistry.register(base64ToolPlugin);
+  pluginRegistry.register(metadataScrubberPlugin);
+  pluginRegistry.register(fileHealthCheckPlugin);
+  pluginRegistry.register(wordCounterPlugin);
+  pluginRegistry.register(diffCheckerPlugin);
+  pluginRegistry.register(regexTesterPlugin);
+  pluginRegistry.register(unitConverterPlugin);
+
+  // 7. Local AI
+  pluginRegistry.register(aiSummarizePlugin);
+  pluginRegistry.register(aiExtractInfoPlugin);
+  pluginRegistry.register(aiTranslatePlugin);
+  pluginRegistry.register(aiSpeechToTextPlugin);
+  pluginRegistry.register(aiImageCaptionPlugin);
 }

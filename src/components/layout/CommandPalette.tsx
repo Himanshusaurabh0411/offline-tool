@@ -17,7 +17,40 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const tools = pluginRegistry.search(query);
+  const allTools = pluginRegistry.search(query);
+  const tools = React.useMemo(() => {
+    if (query.trim()) return allTools;
+    const priority = [
+      'pdf-merge',
+      'pdf-split',
+      'pdf-compress',
+      'pdf-to-word',
+      'word-to-pdf',
+      'passport-photo-maker',
+      'custom-size-reducer',
+      'pdf-to-excel',
+      'excel-to-pdf',
+      'images-to-pdf',
+      'pdf-to-images',
+      'pdf-to-text',
+      'text-to-pdf',
+      'image-compress',
+      'image-resize',
+      'docx-converter',
+      'spreadsheet-converter',
+      'pdf-protect',
+      'pdf-edit',
+      'zip-create',
+    ];
+    return [...allTools].sort((a, b) => {
+      const idxA = priority.indexOf(a.id);
+      const idxB = priority.indexOf(b.id);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return 0;
+    });
+  }, [allTools, query]);
 
   useEffect(() => {
     if (isOpen) {
@@ -100,21 +133,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                   className={`
                     w-full flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors
                     ${isSelected 
-                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white' 
+                      ? 'bg-red-50/60 dark:bg-slate-800 text-slate-900 dark:text-white' 
                       : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                     }
                   `}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center shrink-0">
-                      <ILovePdfToolIcon toolId={tool.id} size={18} />
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="shrink-0 flex items-center justify-center">
+                      <ILovePdfToolIcon toolId={tool.id} size={30} />
                     </div>
                     <div className="truncate">
-                      <div className="text-sm font-semibold truncate flex items-center gap-2">
+                      <div className="text-[14.5px] font-bold truncate text-slate-900 dark:text-white flex items-center gap-2">
                         <span>{tool.name}</span>
-                        <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 bg-slate-200/60 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded">
-                          {tool.category}
-                        </span>
                       </div>
                       <div className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
                         {tool.description}
@@ -122,7 +152,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                     </div>
                   </div>
 
-                  <ArrowRight className={`w-4 h-4 shrink-0 transition-opacity ${isSelected ? 'opacity-100 text-slate-900 dark:text-white' : 'opacity-0'}`} />
+                  <ArrowRight className={`w-4 h-4 shrink-0 transition-opacity ${isSelected ? 'opacity-100 text-[#E5322D]' : 'opacity-0'}`} />
                 </div>
               );
             })

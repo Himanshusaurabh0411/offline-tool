@@ -204,8 +204,13 @@ export const App: React.FC = () => {
                   </span>
                 </h1>
 
-                <p className="text-[17.5px] sm:text-[19.5px] text-[#4B5563] dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
-                  All are 100% FREE and easy to use! Merge, split, compress, convert, edit, and create passport photos with just a few clicks.
+                {/* Dedicated standalone statement */}
+                <p className="text-[17.5px] sm:text-[21px] text-[#111827] dark:text-slate-100 font-extrabold max-w-2xl mx-auto leading-snug">
+                  The first offline toolkit that works 100% without internet — your data privacy is our highest priority.
+                </p>
+
+                <p className="text-[15px] sm:text-[16.5px] text-[#4B5563] dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
+                  All processing runs locally inside your browser memory. Your confidential documents, photos, and files are never uploaded to any server.
                 </p>
 
                 {/* Practical Search Box with Large Clear Input */}

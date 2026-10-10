@@ -605,15 +605,55 @@ export const ILovePdfToolIcon: React.FC<{ toolId: string; size?: number; classNa
       );
 
     case 'hash-checker':
+      return (
+        <SingleDocIcon size={size} color="#4F46E5">
+          <span className="text-white font-mono font-black text-xs">#SHA</span>
+        </SingleDocIcon>
+      );
+
     case 'base64-tool':
+      return (
+        <SingleDocIcon size={size} color="#0891B2">
+          <span className="text-white font-mono font-black text-xs">B64</span>
+        </SingleDocIcon>
+      );
+
     case 'regex-tester':
+      return (
+        <SingleDocIcon size={size} color="#D97706">
+          <span className="text-white font-mono font-black text-xs">.*</span>
+        </SingleDocIcon>
+      );
+
     case 'diff-checker':
+      return (
+        <TwoDocIcon size={size} backColor="#EF4444" backLabel="-" frontColor="#10B981">
+          <span className="text-white font-mono font-black text-xs">+ -</span>
+        </TwoDocIcon>
+      );
+
     case 'word-counter':
+      return (
+        <SingleDocIcon size={size} color="#7C3AED">
+          <span className="text-white font-mono font-black text-xs">123</span>
+        </SingleDocIcon>
+      );
+
     case 'metadata-scrubber':
+      return (
+        <SingleDocIcon size={size} color="#059669">
+          <svg width={Math.round(size * 0.44)} height={Math.round(size * 0.44)} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </SingleDocIcon>
+      );
+
     case 'file-health-check':
       return (
-        <SingleDocIcon size={size} color="#334155">
-          <span className="text-white font-mono font-bold text-xs">&lt;/&gt;</span>
+        <SingleDocIcon size={size} color="#16A34A">
+          <svg width={Math.round(size * 0.44)} height={Math.round(size * 0.44)} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
         </SingleDocIcon>
       );
 
