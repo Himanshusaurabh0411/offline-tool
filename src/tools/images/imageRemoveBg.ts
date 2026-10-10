@@ -1,44 +1,52 @@
 import { ToolPlugin, ToolInputFile, ToolOutputItem, ToolExecutionContext } from '../../core/plugins/types';
+import { removeOrReplaceBackground } from './bgRemovalHelper';
 
 export const imageRemoveBgPlugin: ToolPlugin = {
   id: 'image-remove-bg',
-  name: 'Background Remover (Offline Alpha Matting)',
+  name: 'Background Remover & Color Changer',
   category: 'images',
-  description: 'Eradicate backgrounds from portraits, logos, and product photos to produce transparent PNGs 100% locally.',
+  description: 'Remove background 100% offline or replace it with white, blue, red, or transparent PNG.',
   icon: 'Scissors',
   acceptedMimeTypes: ['image/*'],
   acceptedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
   optionsSchema: [
     {
-      id: 'tolerance',
-      label: 'Edge & Color Sensitivity (1-50)',
-      type: 'range',
-      defaultValue: 25,
-      min: 5,
-      max: 60,
+      id: 'bgColor',
+      label: 'Output Background Color',
+      type: 'select',
+      defaultValue: 'transparent',
+      options: [
+        { label: 'Transparent (Cutout PNG)', value: 'transparent' },
+        { label: 'Plain White (#FFFFFF)', value: 'white' },
+        { label: 'Light Blue (#CAE8FF - Passport & Visa)', value: 'lightblue' },
+        { label: 'Royal Blue (#2563EB - Formal Background)', value: 'blue' },
+        { label: 'Classic Red (#DC2626 - ID Cards)', value: 'red' },
+        { label: 'Light Grey (#F3F4F6)', value: 'lightgrey' },
+      ],
     },
     {
-      id: 'feather',
-      label: 'Edge Feather Radius (px)',
-      type: 'number',
-      defaultValue: 2,
-      min: 0,
-      max: 10,
+      id: 'tolerance',
+      label: 'Edge & Color Sensitivity (10-60)',
+      type: 'range',
+      defaultValue: 30,
+      min: 10,
+      max: 60,
     },
   ],
   run: async (
     files: ToolInputFile[],
-    options: { tolerance?: number; feather?: number },
+    options: { bgColor?: string; tolerance?: number },
     context: ToolExecutionContext
   ): Promise<ToolOutputItem[]> => {
     if (files.length === 0) throw new Error('Please select an image file.');
-    const tolerance = options.tolerance || 25;
+    const tolerance = options.tolerance || 30;
+    const bgColor = options.bgColor || 'transparent';
     const outputs: ToolOutputItem[] = [];
 
     for (let i = 0; i < files.length; i++) {
       if (context.isCancelled()) throw new Error('Cancelled');
       const file = files[i];
-      context.reportProgress(20 + Math.round((i / files.length) * 70), `Analyzing background for ${file.name}...`);
+      context.reportProgress(20 + Math.round((i / files.length) * 70), `Removing background for ${file.name}...`);
 
       const blob = new Blob([file.data as any], { type: file.type });
       const img = await createImageBitmap(blob);
@@ -50,58 +58,24 @@ export const imageRemoveBgPlugin: ToolPlugin = {
 
       ctx.drawImage(img, 0, 0);
 
-      context.reportProgress(50, 'Extracting foreground alpha mask...');
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imgData.data;
-      const w = canvas.width;
-      const h = canvas.height;
+      // Perform boundary-connected background segmentation
+      removeOrReplaceBackground(ctx, canvas.width, canvas.height, {
+        tolerance,
+        replaceBgColor: bgColor === 'transparent' ? null : bgColor,
+      });
 
-      // Sample 4 corners to establish background seed color
-      const sampleCorner = (x: number, y: number) => {
-        const idx = (y * w + x) * 4;
-        return [data[idx], data[idx + 1], data[idx + 2]];
-      };
+      const isPng = bgColor === 'transparent';
+      const mime = isPng ? 'image/png' : 'image/jpeg';
+      const ext = isPng ? 'png' : 'jpg';
 
-      const cornerSeeds = [
-        sampleCorner(0, 0),
-        sampleCorner(w - 1, 0),
-        sampleCorner(0, h - 1),
-        sampleCorner(w - 1, h - 1),
-      ];
-
-      // Average background color
-      const bgR = Math.round(cornerSeeds.reduce((a, s) => a + s[0], 0) / 4);
-      const bgG = Math.round(cornerSeeds.reduce((a, s) => a + s[1], 0) / 4);
-      const bgB = Math.round(cornerSeeds.reduce((a, s) => a + s[2], 0) / 4);
-
-      // Color distance threshold
-      const maxDistance = tolerance * 4.0;
-
-      for (let idx = 0; idx < data.length; idx += 4) {
-        const r = data[idx];
-        const g = data[idx + 1];
-        const b = data[idx + 2];
-
-        // Euclidean color distance from background
-        const dist = Math.sqrt((r - bgR) ** 2 + (g - bgG) ** 2 + (b - bgB) ** 2);
-
-        if (dist < maxDistance) {
-          // Fade to transparent based on proximity
-          const alphaRatio = Math.max(0, (dist - maxDistance * 0.5) / (maxDistance * 0.5));
-          data[idx + 3] = Math.round(data[idx + 3] * alphaRatio);
-        }
-      }
-
-      ctx.putImageData(imgData, 0, 0);
-
-      const transparentBlob: Blob = await new Promise((res) => canvas.toBlob((b) => res(b!), 'image/png'));
+      const outputBlob: Blob = await new Promise((res) => canvas.toBlob((b) => res(b!), mime, 0.95));
       const baseName = file.name.replace(/\.[^/.]+$/, '');
 
       outputs.push({
-        name: `${baseName}-transparent.png`,
-        type: 'image/png',
-        data: transparentBlob,
-        downloadName: `${baseName}-transparent.png`,
+        name: `${baseName}-${bgColor === 'transparent' ? 'nobg' : bgColor}.${ext}`,
+        type: mime,
+        data: outputBlob,
+        downloadName: `${baseName}-${bgColor === 'transparent' ? 'transparent' : bgColor}.${ext}`,
       });
     }
 

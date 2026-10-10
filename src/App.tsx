@@ -194,9 +194,15 @@ export const App: React.FC = () => {
         ) : (
           <>
             {/* ── Hero Section: Friendly, High-Clarity Header ────────── */}
-            <section className="bg-white dark:bg-[#111317] border-b border-[#E5E7EB] dark:border-slate-800 pt-16 pb-14">
-              <div className="max-w-4xl mx-auto px-5 sm:px-8 text-center space-y-6">
+            <section className="bg-white dark:bg-[#111317] border-b border-[#E5E7EB] dark:border-slate-800 pt-10 sm:pt-16 pb-9 sm:pb-14">
+              <div className="max-w-4xl mx-auto px-4 sm:px-8 text-center space-y-4 sm:space-y-6">
                 
+                {/* Platform Highlight Tag */}
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-50 dark:bg-red-950/50 border border-red-200/80 dark:border-red-900/60 text-[#E5322D] text-[12px] sm:text-[13px] font-black uppercase tracking-wider">
+                  <span className="w-2 h-2 rounded-full bg-[#E5322D] animate-pulse" />
+                  <span>First Ever 100% Offline Platform</span>
+                </div>
+
                 <h1 className="text-3xl sm:text-5xl md:text-5xl font-black text-[#111827] dark:text-white tracking-tight leading-[1.2]">
                   Every tool you need to use PDFs & files,{' '}
                   <span className="text-[#E5322D]">
@@ -204,17 +210,17 @@ export const App: React.FC = () => {
                   </span>
                 </h1>
 
-                {/* Dedicated standalone statement */}
-                <p className="text-[17.5px] sm:text-[21px] text-[#111827] dark:text-slate-100 font-extrabold max-w-2xl mx-auto leading-snug">
-                  The first offline toolkit that works 100% without internet — your data privacy is our highest priority.
+                {/* The highlighted bold statement */}
+                <p className="text-[17px] sm:text-[22px] text-[#111827] dark:text-slate-100 font-extrabold max-w-2xl mx-auto leading-snug">
+                  100% Free • Truly Offline • Your Data is Our #1 Priority
                 </p>
 
-                <p className="text-[15px] sm:text-[16.5px] text-[#4B5563] dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
-                  All processing runs locally inside your browser memory. Your confidential documents, photos, and files are never uploaded to any server.
+                <p className="text-[14px] sm:text-[16px] text-[#4B5563] dark:text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
+                  Runs completely on your device with zero internet connection needed. Your confidential files, photos, and documents never leave your browser.
                 </p>
 
                 {/* Practical Search Box with Large Clear Input */}
-                <div className="pt-2 max-w-xl mx-auto">
+                <div className="pt-1 max-w-xl mx-auto">
                   <div className="relative flex items-center">
                     <Search className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" />
                     <input
@@ -222,12 +228,12 @@ export const App: React.FC = () => {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search tools (e.g., merge pdf, passport photo, compress to 50kb)..."
-                      className="w-full h-14 bg-[#F8F9FA] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-2xl pl-12 pr-24 text-[16px] font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#E5322D] dark:focus:border-[#E5322D] transition-all shadow-xs"
+                      className="w-full h-13 sm:h-14 bg-[#F8F9FA] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-2xl pl-12 pr-24 text-[15px] sm:text-[16px] font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#E5322D] dark:focus:border-[#E5322D] transition-all shadow-xs"
                     />
                     {searchQuery ? (
                       <button
                         onClick={() => setSearchQuery('')}
-                        className="absolute right-3.5 text-xs font-bold px-2.5 py-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-300 transition-colors"
+                        className="absolute right-3 text-xs font-bold px-2.5 py-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-300 transition-colors"
                       >
                         Clear
                       </button>
@@ -239,8 +245,8 @@ export const App: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Clean, Readable Category Pills */}
-                <div className="pt-4 flex items-center justify-center flex-wrap gap-2">
+                {/* Clean, Readable Category Pills with Horizontal Scroll on Mobile */}
+                <div className="pt-2 flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar gap-2 px-1 pb-1">
                   {categoryTabs.map((tab) => {
                     const isActive = selectedCategory === tab.id;
                     return (
@@ -248,8 +254,8 @@ export const App: React.FC = () => {
                         key={tab.id}
                         onClick={() => setSelectedCategory(tab.id)}
                         className={`
-                          px-4 py-2 rounded-xl text-[14.5px] font-bold
-                          transition-all duration-150 cursor-pointer whitespace-nowrap
+                          px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[13.5px] sm:text-[14.5px] font-bold
+                          transition-all duration-150 cursor-pointer whitespace-nowrap shrink-0
                           ${isActive
                             ? 'bg-[#E5322D] text-white shadow-sm shadow-red-500/20'
                             : 'bg-white dark:bg-slate-900 text-[#4B5563] dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-white'
@@ -302,8 +308,8 @@ export const App: React.FC = () => {
                   </button>
                 </div>
               ) : (
-                /* Authentic iLovePDF Responsive 6-Column Grid */
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-5">
+                /* Authentic iLovePDF Responsive Grid (2 cols on mobile, 6 on desktop) */
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-5">
                   {filteredTools.map((tool) => {
                     const isFav = favorites.includes(tool.id);
                     return (
@@ -315,18 +321,18 @@ export const App: React.FC = () => {
                           border border-slate-200/80 dark:border-slate-800
                           hover:border-[#E5322D] dark:hover:border-[#E5322D]
                           shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-xl
-                          rounded-2xl p-5 sm:p-6
+                          rounded-xl sm:rounded-2xl p-3.5 sm:p-5
                           cursor-pointer
                           transition-all duration-200
                           hover:-translate-y-1.5
                           flex flex-col justify-start
-                          min-h-[195px] select-none
+                          min-h-[165px] sm:min-h-[195px] select-none
                         "
                       >
                         {/* Top row: Authentic iLovePDF Icon + Star */}
-                        <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-start justify-between mb-3 sm:mb-4">
                           <div className="transition-transform group-hover:scale-105">
-                            <ILovePdfToolIcon toolId={tool.id} size={50} />
+                            <ILovePdfToolIcon toolId={tool.id} size={46} />
                           </div>
                           <button
                             onClick={(e) => toggleFavorite(tool.id, e)}
@@ -335,17 +341,17 @@ export const App: React.FC = () => {
                             }`}
                             title="Star favorite tool"
                           >
-                            <Star className={`w-4 h-4 ${isFav ? 'fill-amber-400' : ''}`} />
+                            <Star className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isFav ? 'fill-amber-400' : ''}`} />
                           </button>
                         </div>
 
                         {/* Tool Name - Bold & Clear */}
-                        <h3 className="font-extrabold text-[17.5px] text-[#111827] dark:text-white leading-snug group-hover:text-[#E5322D] transition-colors">
+                        <h3 className="font-extrabold text-[14.5px] sm:text-[17px] text-[#111827] dark:text-white leading-snug group-hover:text-[#E5322D] transition-colors line-clamp-2">
                           {tool.name}
                         </h3>
 
                         {/* Tool Description - Readable & Clean */}
-                        <p className="text-[13.5px] text-[#4B5563] dark:text-slate-300 mt-2 leading-relaxed">
+                        <p className="text-[12px] sm:text-[13.5px] text-[#4B5563] dark:text-slate-300 mt-1.5 leading-relaxed line-clamp-2 sm:line-clamp-3">
                           {tool.description}
                         </p>
                       </div>

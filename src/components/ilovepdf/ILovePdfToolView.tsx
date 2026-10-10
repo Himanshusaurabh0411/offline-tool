@@ -267,15 +267,15 @@ export const ILovePdfToolView: React.FC<ILovePdfToolViewProps> = ({
             </p>
           </div>
 
-          <div className="pt-4">
+          <div className="pt-4 max-w-md mx-auto">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center justify-center gap-3 px-12 py-5 rounded-2xl bg-[#E5322D] hover:bg-[#c92520] text-white font-extrabold text-xl shadow-xl shadow-red-500/25 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 sm:px-12 py-4.5 sm:py-5 rounded-2xl bg-[#E5322D] hover:bg-[#c92520] text-white font-extrabold text-lg sm:text-xl shadow-xl shadow-red-500/25 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
             >
-              <Upload className="w-6 h-6" />
+              <Upload className="w-5 h-5 sm:w-6 sm:h-6" />
               <span>Select {plugin.acceptedExtensions.includes('pdf') ? 'PDF files' : 'files'}</span>
             </button>
-            <p className="mt-3 text-sm text-slate-400 font-medium">
+            <p className="mt-3 text-xs sm:text-sm text-slate-400 font-medium">
               or drop {plugin.acceptedExtensions.includes('pdf') ? 'PDFs' : 'files'} here
             </p>
           </div>

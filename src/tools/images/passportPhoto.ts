@@ -1,10 +1,11 @@
 import { ToolPlugin, ToolInputFile, ToolOutputItem, ToolExecutionContext } from '../../core/plugins/types';
+import { removeOrReplaceBackground } from './bgRemovalHelper';
 
 export const passportPhotoPlugin: ToolPlugin = {
   id: 'passport-photo-maker',
-  name: 'Passport Photo Maker',
+  name: 'Passport Photo Maker & Background Changer',
   category: 'images',
-  description: 'Generate standard biometric passport & visa photos (India 3.5x4.5cm, US 2x2 in, UK/EU, Canada) with optional white/blue background and 4x6 print sheet.',
+  description: 'Generate standard biometric passport & visa photos (India 3.5x4.5cm, US 2x2 in, UK/EU) with automatic background removal, color replacement (white, blue, red), and 4x6 print sheet.',
   icon: 'UserCheck',
   acceptedMimeTypes: ['image/*'],
   acceptedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
@@ -23,15 +24,24 @@ export const passportPhotoPlugin: ToolPlugin = {
       ],
     },
     {
+      id: 'removeBg',
+      label: 'Remove & Replace Background',
+      type: 'boolean',
+      defaultValue: true,
+      description: 'Automatically segment portrait and replace background with chosen color',
+    },
+    {
       id: 'bgColor',
-      label: 'Background Tint / Color',
+      label: 'Background Color',
       type: 'select',
       defaultValue: 'white',
       options: [
-        { label: 'Original Background', value: 'original' },
-        { label: 'Plain White (#FFFFFF)', value: 'white' },
-        { label: 'Light Blue (#EBF4FF - Standard India/Oman/Kuwait)', value: 'lightblue' },
-        { label: 'Light Grey (#F3F4F6 - Standard US/EU)', value: 'lightgrey' },
+        { label: 'Plain White (#FFFFFF) - US, UK, Schengen, Passport India', value: 'white' },
+        { label: 'Light Blue (#CAE8FF) - India SSC, UPSC, State Exams, Oman', value: 'lightblue' },
+        { label: 'Royal Blue (#2563EB) - Corporate / ID Badges', value: 'blue' },
+        { label: 'Classic Red (#DC2626) - Asian Passports / ID', value: 'red' },
+        { label: 'Light Grey (#F3F4F6) - US/EU Standard', value: 'lightgrey' },
+        { label: 'Keep Original Background', value: 'original' },
       ],
     },
     {
@@ -43,7 +53,7 @@ export const passportPhotoPlugin: ToolPlugin = {
   ],
   run: async (
     files: ToolInputFile[],
-    options: { format?: string; bgColor?: string; createPrintSheet?: boolean },
+    options: { format?: string; bgColor?: string; removeBg?: boolean; createPrintSheet?: boolean },
     context: ToolExecutionContext
   ): Promise<ToolOutputItem[]> => {
     if (files.length === 0) throw new Error('Please upload a portrait image.');
@@ -51,6 +61,7 @@ export const passportPhotoPlugin: ToolPlugin = {
     const outputs: ToolOutputItem[] = [];
     const format = options.format || 'in-35x45';
     const bgColor = options.bgColor || 'white';
+    const removeBg = options.removeBg ?? true;
     const createSheet = options.createPrintSheet ?? true;
 
     // Dimensions in pixels (300 DPI standard)
@@ -70,7 +81,7 @@ export const passportPhotoPlugin: ToolPlugin = {
     for (let i = 0; i < files.length; i++) {
       if (context.isCancelled()) throw new Error('Operation cancelled');
       const file = files[i];
-      context.reportProgress(20 + Math.round((i / files.length) * 60), `Processing passport photo for ${file.name}...`);
+      context.reportProgress(20 + Math.round((i / files.length) * 40), `Processing passport photo for ${file.name}...`);
 
       const blob = new Blob([file.data as any], { type: file.type });
       const img = await createImageBitmap(blob);
@@ -80,18 +91,6 @@ export const passportPhotoPlugin: ToolPlugin = {
       canvas.width = photoW;
       canvas.height = photoH;
       const ctx = canvas.getContext('2d')!;
-
-      // Background color
-      if (bgColor === 'white') {
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, photoW, photoH);
-      } else if (bgColor === 'lightblue') {
-        ctx.fillStyle = '#DCEBFA';
-        ctx.fillRect(0, 0, photoW, photoH);
-      } else if (bgColor === 'lightgrey') {
-        ctx.fillStyle = '#F3F4F6';
-        ctx.fillRect(0, 0, photoW, photoH);
-      }
 
       // Calculate center-crop to fit target aspect ratio with portrait focus
       const targetRatio = photoW / photoH;
@@ -103,21 +102,28 @@ export const passportPhotoPlugin: ToolPlugin = {
       let srcY = 0;
 
       if (sourceRatio > targetRatio) {
-        // Image is wider than needed, crop sides
         srcW = img.height * targetRatio;
         srcX = (img.width - srcW) / 2;
       } else {
-        // Image is taller than needed, focus on upper 70% (head & shoulders)
         srcH = img.width / targetRatio;
-        srcY = Math.max(0, (img.height - srcH) * 0.2); // Upper focus
+        srcY = Math.max(0, (img.height - srcH) * 0.18);
       }
 
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, photoW, photoH);
 
-      // Delicate border guide for cutting
-      ctx.strokeStyle = '#D1D5DB';
+      // Perform background removal and color replacement
+      if (removeBg && bgColor !== 'original') {
+        context.reportProgress(65, 'Segmenting background & applying color...');
+        removeOrReplaceBackground(ctx, photoW, photoH, {
+          tolerance: 30,
+          replaceBgColor: bgColor,
+        });
+      }
+
+      // Subtle border cutting guide
+      ctx.strokeStyle = '#E5E7EB';
       ctx.lineWidth = 1;
       ctx.strokeRect(0, 0, photoW, photoH);
 
@@ -132,6 +138,7 @@ export const passportPhotoPlugin: ToolPlugin = {
         metadata: {
           dimensions: `${photoW}x${photoH}px @ 300 DPI`,
           format,
+          bgColor,
         },
       });
 
@@ -143,11 +150,9 @@ export const passportPhotoPlugin: ToolPlugin = {
         sheetCanvas.height = 1200; // 4 inches @ 300 DPI
         const sCtx = sheetCanvas.getContext('2d')!;
 
-        // Crisp white paper background
         sCtx.fillStyle = '#FFFFFF';
         sCtx.fillRect(0, 0, 1800, 1200);
 
-        // Calculate grid (e.g. 2x4 for 35x45 or 2x3 for 2x2)
         const cols = format === 'us-2x2' ? 2 : 4;
         const rows = format === 'us-2x2' ? 2 : 2;
         const gapX = Math.round((1800 - (cols * photoW)) / (cols + 1));
@@ -158,8 +163,7 @@ export const passportPhotoPlugin: ToolPlugin = {
             const x = gapX + c * (photoW + gapX);
             const y = gapY + r * (photoH + gapY);
             sCtx.drawImage(canvas, x, y);
-            // Light cutting boundary dashed line
-            sCtx.strokeStyle = '#CCCCCC';
+            sCtx.strokeStyle = '#D1D5DB';
             sCtx.lineWidth = 1;
             sCtx.strokeRect(x, y, photoW, photoH);
           }
