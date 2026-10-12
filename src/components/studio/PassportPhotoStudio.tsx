@@ -14,10 +14,16 @@ import {
   Scissors,
   Layers,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  Cpu,
+  ShieldCheck,
+  AlertCircle
 } from 'lucide-react';
 import { ToolInputFile } from '../../core/plugins/types';
-import { createCutoutCanvas } from '../../tools/images/bgRemovalHelper';
+import { 
+  removeImageBackground, 
+  RemovalProgressCallback 
+} from '../../core/ai/backgroundRemovalService';
 
 interface PassportPhotoStudioProps {
   file: File | ToolInputFile;
@@ -47,7 +53,7 @@ const FORMATS: Record<CountryFormat, FormatConfig> = {
     sheetRows: 2,
   },
   'us-2x2': {
-    name: 'US Passport & Visa (2 × 2 inches / 51 × 51 mm)',
+    name: 'US Passport & Visa (2 × 2 in / 51 × 51 mm)',
     widthMm: 51,
     heightMm: 51,
     widthPx: 600,
@@ -81,7 +87,7 @@ const BG_PRESETS = [
   { id: 'blue', name: 'Royal Blue', color: '#2563EB', desc: 'Corporate / ID Badges' },
   { id: 'red', name: 'Classic Red', color: '#DC2626', desc: 'Asian Passports / ID' },
   { id: 'lightgrey', name: 'Light Grey', color: '#F3F4F6', desc: 'Canada & EU Standard' },
-  { id: 'transparent', name: 'Transparent (PNG)', color: 'transparent', desc: 'Cutout PNG without background' },
+  { id: 'transparent', name: 'Transparent (PNG)', color: 'transparent', desc: 'Alpha cutout without background' },
   { id: 'original', name: 'Original', color: 'transparent', desc: 'Keep original background' },
 ];
 
@@ -90,9 +96,14 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
   const [selectedBg, setSelectedBg] = useState<string>('white');
   const [customColor, setCustomColor] = useState<string>('#FFFFFF');
   const [removeBg, setRemoveBg] = useState<boolean>(true);
-  const [tolerance, setTolerance] = useState<number>(32);
+
+  // AI Matting State
   const [isSegmenting, setIsSegmenting] = useState<boolean>(false);
-  
+  const [aiProgress, setAiProgress] = useState<number>(0);
+  const [aiMessage, setAiMessage] = useState<string>('Initializing AI neural network...');
+  const [aiEngine, setAiEngine] = useState<'rmbg' | 'modnet' | 'fallback' | null>(null);
+  const [segmentationError, setSegmentationError] = useState<string | null>(null);
+
   // Interactive Alignment Controls
   const [zoom, setZoom] = useState<number>(1.0);
   const [panX, setPanX] = useState<number>(0);
@@ -102,10 +113,13 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
   const [activeTab, setActiveTab] = useState<'single' | 'sheet'>('single');
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
+  // Canvas Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sheetCanvasRef = useRef<HTMLCanvasElement>(null);
   const rawImageRef = useRef<HTMLImageElement | null>(null);
-  const cutoutCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const rawBlobRef = useRef<Blob | null>(null);
+  const cutoutDrawableRef = useRef<ImageBitmap | HTMLImageElement | null>(null);
+  const isAbortedRef = useRef<boolean>(false);
 
   // Drag & Touch interaction refs
   const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -113,51 +127,6 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
   const touchDistanceRef = useRef<number | null>(null);
 
   const cfg = FORMATS[selectedFormat];
-
-  // Helper to re-segment image when raw image or tolerance changes
-  const runBackgroundSegmentation = useCallback(() => {
-    const img = rawImageRef.current;
-    if (!img) return;
-
-    setIsSegmenting(true);
-    // Allow React state to update before computing segmentation
-    setTimeout(() => {
-      try {
-        const cutout = createCutoutCanvas(img, {
-          tolerance,
-          protectSkin: true,
-        });
-        cutoutCanvasRef.current = cutout;
-      } catch (err) {
-        console.error('Segmentation error:', err);
-      } finally {
-        setIsSegmenting(false);
-      }
-    }, 10);
-  }, [tolerance]);
-
-  // Load image element
-  useEffect(() => {
-    const img = new Image();
-    const blob = file instanceof Blob ? file : new Blob([(file as any).data], { type: file.type });
-    const url = URL.createObjectURL(blob);
-    img.onload = () => {
-      rawImageRef.current = img;
-      runBackgroundSegmentation();
-    };
-    img.src = url;
-
-    return () => {
-      URL.revokeObjectURL(url);
-    };
-  }, [file, runBackgroundSegmentation]);
-
-  // Re-run segmentation when tolerance changes
-  useEffect(() => {
-    if (rawImageRef.current) {
-      runBackgroundSegmentation();
-    }
-  }, [tolerance, runBackgroundSegmentation]);
 
   // Render 4x6 print sheet (1800 x 1200 px at 300 DPI)
   const renderSheetCanvas = useCallback((sourceCanvas: HTMLCanvasElement) => {
@@ -221,7 +190,7 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
     ctx.clearRect(0, 0, w, h);
 
     // 3. Draw background color if background removal is active and not original
-    const shouldUseCutout = removeBg && selectedBg !== 'original' && cutoutCanvasRef.current;
+    const shouldUseCutout = removeBg && selectedBg !== 'original' && cutoutDrawableRef.current;
     if (shouldUseCutout && selectedBg !== 'transparent') {
       let bgFill = '#FFFFFF';
       if (selectedBg === 'white') bgFill = '#FFFFFF';
@@ -235,8 +204,8 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
       ctx.fillRect(0, 0, w, h);
     }
 
-    // 4. Source image element to draw: cleanly segmented cutout OR original image
-    const sourceDrawable = shouldUseCutout ? cutoutCanvasRef.current! : img;
+    // 4. Source image element to draw: cleanly segmented AI cutout OR original image
+    const sourceDrawable: CanvasImageSource = shouldUseCutout ? cutoutDrawableRef.current! : img;
 
     // 5. Draw image centered with user transform (Zoom, Pan, Rotation)
     ctx.save();
@@ -255,11 +224,84 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
 
     // Update 4x6 print sheet
     renderSheetCanvas(canvas);
-  }, [cfg, panX, panY, zoom, rotation, removeBg, selectedBg, customColor, renderSheetCanvas, isSegmenting]);
+  }, [cfg, panX, panY, zoom, rotation, removeBg, selectedBg, customColor, renderSheetCanvas]);
 
+  // Execute AI background segmentation using RMBG-1.4 model
+  const runBackgroundSegmentation = useCallback(async (blobToUse?: Blob) => {
+    const b = blobToUse || rawBlobRef.current;
+    if (!b) return;
+
+    setIsSegmenting(true);
+    setAiProgress(8);
+    setAiMessage('Loading RMBG-1.4 AI neural network...');
+    setSegmentationError(null);
+
+    const onProgress: RemovalProgressCallback = (stage, pct, detail) => {
+      if (isAbortedRef.current) return;
+      setAiProgress(pct);
+      if (stage === 'downloading') {
+        setAiMessage(detail || `Downloading AI weights (${pct}%)...`);
+      } else if (stage === 'processing') {
+        setAiMessage(detail || 'Executing deep neural matting at 1024×1024...');
+      } else if (stage === 'finishing') {
+        setAiMessage(detail || 'Refining alpha matte & edges...');
+      }
+    };
+
+    try {
+      const { blob: outputBlob, engine } = await removeImageBackground(b, onProgress);
+      if (isAbortedRef.current) return;
+
+      const bmp = await createImageBitmap(outputBlob);
+      cutoutDrawableRef.current = bmp;
+      setAiEngine(engine);
+      setAiProgress(100);
+      setIsSegmenting(false);
+      renderLiveCanvas();
+    } catch (err: any) {
+      console.error('Passport studio AI segmentation error:', err);
+      if (!isAbortedRef.current) {
+        setSegmentationError(err?.message || 'AI background removal failed. You can retry.');
+        setIsSegmenting(false);
+      }
+    }
+  }, [renderLiveCanvas]);
+
+  // Initial load of image element & kick off AI segmentation
+  useEffect(() => {
+    isAbortedRef.current = false;
+    const rawBlob = file instanceof Blob ? file : new Blob([(file as any).data], { type: file.type });
+    rawBlobRef.current = rawBlob;
+
+    const img = new Image();
+    const url = URL.createObjectURL(rawBlob);
+    img.onload = () => {
+      rawImageRef.current = img;
+      renderLiveCanvas();
+      if (removeBg) {
+        runBackgroundSegmentation(rawBlob);
+      }
+    };
+    img.src = url;
+
+    return () => {
+      isAbortedRef.current = true;
+      URL.revokeObjectURL(url);
+    };
+  }, [file]); // run once per file
+
+  // Trigger render when relevant state changes
   useEffect(() => {
     renderLiveCanvas();
-  }, [renderLiveCanvas]);
+  }, [renderLiveCanvas, isSegmenting, aiEngine, removeBg, selectedBg, customColor, zoom, panX, panY, rotation, selectedFormat]);
+
+  // Handle toggle of background removal checkbox
+  const handleToggleRemoveBg = (checked: boolean) => {
+    setRemoveBg(checked);
+    if (checked && !cutoutDrawableRef.current && !isSegmenting) {
+      runBackgroundSegmentation();
+    }
+  };
 
   // Mouse drag handlers on canvas stage
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -381,18 +423,25 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
           <span>Back to Tools</span>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* AI Segmentation Status Indicator */}
           {isSegmenting ? (
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
-              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              <span>Segmenting Background...</span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 text-xs font-bold border border-red-200 dark:border-red-800 animate-pulse">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#E5322D]" />
+              <span>AI Matting: {aiProgress}%</span>
             </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>100% Offline Biometric Studio</span>
+          ) : aiEngine ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+              <span>{aiEngine === 'rmbg' ? 'RMBG-1.4 AI (1024px)' : aiEngine === 'modnet' ? 'MODNet AI' : 'Boundary Matting'}</span>
             </span>
-          )}
+          ) : null}
+
+          {/* Privacy badge */}
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <span>100% In-Browser & Private</span>
+          </span>
         </div>
       </div>
 
@@ -446,6 +495,52 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
             {/* Canvas Display Stage */}
             <div className="relative min-h-[380px] sm:min-h-[440px] flex items-center justify-center p-4 bg-slate-100 dark:bg-slate-950/60 rounded-xl overflow-hidden border border-slate-200/60 dark:border-slate-800 select-none">
               
+              {/* AI Processing Overlay */}
+              {isSegmenting && (
+                <div className="absolute inset-0 bg-white/80 dark:bg-slate-950/85 backdrop-blur-xs flex flex-col items-center justify-center p-6 z-20 animate-in fade-in duration-200 rounded-xl">
+                  <div className="w-full max-w-xs space-y-3.5 text-center">
+                    <div className="w-12 h-12 mx-auto rounded-2xl bg-red-50 dark:bg-red-950/60 flex items-center justify-center text-[#E5322D] shadow-md border border-red-200/50 dark:border-red-800/50">
+                      <RefreshCw className="w-6 h-6 animate-spin" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-black text-slate-900 dark:text-white flex items-center justify-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-[#E5322D]" />
+                        <span>AI Deep Neural Matting</span>
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">
+                        {aiMessage}
+                      </div>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-300/40 dark:border-slate-700/40">
+                      <div 
+                        className="bg-linear-to-r from-red-500 to-[#E5322D] h-full transition-all duration-300 rounded-full" 
+                        style={{ width: `${Math.max(6, aiProgress)}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center text-[11px] font-mono text-slate-400">
+                      <span>RMBG-1.4 1024px</span>
+                      <span className="font-bold text-[#E5322D]">{aiProgress}%</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Notification */}
+              {segmentationError && (
+                <div className="absolute top-4 left-4 right-4 z-20 p-3 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 flex items-center justify-between text-xs text-red-600 dark:text-red-400 shadow-md">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{segmentationError}</span>
+                  </div>
+                  <button
+                    onClick={() => runBackgroundSegmentation()}
+                    className="px-2.5 py-1 rounded bg-[#E5322D] text-white font-bold hover:bg-[#c92520] transition-colors cursor-pointer shrink-0"
+                  >
+                    Retry AI
+                  </button>
+                </div>
+              )}
+
               {/* Single Photo Stage with Direct Drag & Wheel Zoom */}
               <div 
                 className={`relative flex items-center justify-center ${activeTab === 'single' ? '' : 'hidden'}`}
@@ -461,8 +556,8 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
                   onTouchEnd={handleTouchEnd}
                   onWheel={handleWheel}
                   className={`rounded-lg shadow-2xl max-h-[360px] sm:max-h-[400px] w-auto border border-white dark:border-slate-700 touch-none ${
-                    isDragging ? 'cursor-grabbing' : 'cursor-grab'
-                  }`}
+                    selectedBg === 'transparent' ? 'bg-checkerboard' : ''
+                  } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
                 />
 
                 {/* Biometric Head, Eyes & Chin Alignment Overlay */}
@@ -516,7 +611,7 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setZoom(z => Math.max(0.4, Number((z - 0.1).toFixed(2))))}
-                      className="p-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors"
+                      className="p-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors cursor-pointer"
                       title="Zoom Out"
                     >
                       <ZoomOut className="w-3.5 h-3.5" />
@@ -532,7 +627,7 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
                     />
                     <button
                       onClick={() => setZoom(z => Math.min(3.5, Number((z + 0.1).toFixed(2))))}
-                      className="p-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors"
+                      className="p-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors cursor-pointer"
                       title="Zoom In"
                     >
                       <ZoomIn className="w-3.5 h-3.5" />
@@ -644,15 +739,15 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
             </div>
           </div>
 
-          {/* Background Remover & Color Palette */}
+          {/* AI Background Remover & Color Palette */}
           <div className="bg-white dark:bg-[#141518] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                   <Scissors className="w-4 h-4 text-[#E5322D]" />
-                  <span>Background Color Changer</span>
+                  <span>AI Background Remover & Color</span>
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">1-click offline background segmentation</p>
+                <p className="text-xs text-slate-500 mt-0.5">Deep neural network subject matting</p>
               </div>
 
               {/* Toggle switch */}
@@ -660,10 +755,10 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
                 <input
                   type="checkbox"
                   checked={removeBg}
-                  onChange={(e) => setRemoveBg(e.target.checked)}
+                  onChange={(e) => handleToggleRemoveBg(e.target.checked)}
                   className="rounded text-[#E5322D] focus:ring-[#E5322D] cursor-pointer"
                 />
-                <span>Enable</span>
+                <span>Enable AI</span>
               </label>
             </div>
 
@@ -729,29 +824,26 @@ export const PassportPhotoStudio: React.FC<PassportPhotoStudioProps> = ({ file, 
                   </div>
                 </div>
 
-                {/* Sensitivity / Tolerance Slider */}
-                <div className="pt-2 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                  <div className="flex justify-between items-center text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    <span className="flex items-center gap-1.5">
-                      <Sliders className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Edge Sensitivity (Tolerance)</span>
+                {/* AI Model Controls & Re-run */}
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5 text-slate-500">
+                    <Sparkles className="w-3.5 h-3.5 text-[#E5322D]" />
+                    <span>
+                      {aiEngine === 'rmbg' 
+                        ? 'Bria RMBG-1.4 (1024px)' 
+                        : aiEngine === 'modnet' 
+                        ? 'MODNet Neural AI' 
+                        : 'Neural Matting'}
                     </span>
-                    <span className="font-mono text-slate-400">{tolerance}</span>
                   </div>
-                  <input
-                    type="range"
-                    min="15"
-                    max="65"
-                    step="1"
-                    value={tolerance}
-                    onChange={(e) => setTolerance(parseInt(e.target.value))}
-                    className="w-full accent-[#E5322D]"
-                  />
-                  <div className="flex justify-between text-[10px] text-slate-400">
-                    <span>Precise (Low)</span>
-                    <span>Standard (32)</span>
-                    <span>Aggressive (High)</span>
-                  </div>
+                  <button
+                    onClick={() => runBackgroundSegmentation()}
+                    disabled={isSegmenting}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300 font-bold hover:text-[#E5322D] transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isSegmenting ? 'animate-spin' : ''}`} />
+                    <span>Re-run AI</span>
+                  </button>
                 </div>
 
               </div>

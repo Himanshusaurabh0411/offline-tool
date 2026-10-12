@@ -7,6 +7,7 @@ import { imageMemePlugin } from '../tools/images/imageMeme';
 import { imageCollagePlugin } from '../tools/images/imageCollage';
 import { imageExifPlugin } from '../tools/images/imageExif';
 import { imageRemoveBgPlugin } from '../tools/images/imageRemoveBg';
+import { passportPhotoPlugin } from '../tools/images/passportPhoto';
 import { executeTool } from '../core/plugins/runner';
 
 // Polyfill canvas & ImageBitmap for Node.js test environment
@@ -30,6 +31,9 @@ beforeAll(() => {
             getContext: () => ({
               drawImage: () => {},
               fillRect: () => {},
+              strokeRect: () => {},
+              save: () => {},
+              restore: () => {},
               strokeText: () => {},
               fillText: () => {},
               translate: () => {},
@@ -155,5 +159,20 @@ describe('Phase (c) Image Processing Suite', () => {
     expect(results).toHaveLength(1);
     expect(results[0].type).toBe('image/png');
     expect(results[0].name).toContain('nobg');
+  });
+
+  it('generates biometric passport photo with AI background removal and 4x6 sheet', async () => {
+    const img = createTestImage('passport-candidate.png');
+    const results = await executeTool(passportPhotoPlugin, [img], {
+      format: 'in-35x45',
+      bgColor: 'white',
+      removeBg: true,
+      createPrintSheet: true,
+    });
+
+    expect(results.length).toBe(2);
+    expect(results[0].type).toBe('image/jpeg');
+    expect(results[0].name).toContain('passport-photo');
+    expect(results[1].name).toContain('4x6-print-sheet');
   });
 });

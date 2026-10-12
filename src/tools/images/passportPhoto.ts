@@ -1,11 +1,11 @@
 import { ToolPlugin, ToolInputFile, ToolOutputItem, ToolExecutionContext } from '../../core/plugins/types';
-import { createCutoutCanvas } from './bgRemovalHelper';
+import { removeImageBackground } from '../../core/ai/backgroundRemovalService';
 
 export const passportPhotoPlugin: ToolPlugin = {
   id: 'passport-photo-maker',
   name: 'Passport Photo Maker & Background Changer',
   category: 'images',
-  description: 'Generate standard biometric passport & visa photos (India 3.5x4.5cm, US 2x2 in, UK/EU) with automatic background removal, color replacement (white, blue, red), and 4x6 print sheet.',
+  description: 'Generate standard biometric passport & visa photos (India 3.5x4.5cm, US 2x2 in, UK/EU) with automatic AI background removal, color replacement (white, blue, red), and 4x6 print sheet.',
   icon: 'UserCheck',
   acceptedMimeTypes: ['image/*'],
   acceptedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
@@ -28,7 +28,7 @@ export const passportPhotoPlugin: ToolPlugin = {
       label: 'Remove & Replace Background',
       type: 'boolean',
       defaultValue: true,
-      description: 'Automatically segment portrait and replace background with chosen color',
+      description: 'Automatically segment portrait using AI neural network and replace background with chosen color',
     },
     {
       id: 'bgColor',
@@ -41,6 +41,7 @@ export const passportPhotoPlugin: ToolPlugin = {
         { label: 'Royal Blue (#2563EB) - Corporate / ID Badges', value: 'blue' },
         { label: 'Classic Red (#DC2626) - Asian Passports / ID', value: 'red' },
         { label: 'Light Grey (#F3F4F6) - US/EU Standard', value: 'lightgrey' },
+        { label: 'Transparent Cutout (PNG)', value: 'transparent' },
         { label: 'Keep Original Background', value: 'original' },
       ],
     },
@@ -114,8 +115,11 @@ export const passportPhotoPlugin: ToolPlugin = {
 
       // Perform background removal and color replacement on source image before cropping
       if (removeBg && bgColor !== 'original') {
-        context.reportProgress(65, 'Segmenting background & applying color...');
-        const cutout = createCutoutCanvas(img, { tolerance: 30, protectSkin: true });
+        context.reportProgress(35, 'Segmenting background using deep learning AI...');
+        const { blob: cutoutBlob } = await removeImageBackground(blob, (stage, pct, detail) => {
+          context.reportProgress(20 + Math.round((pct / 100) * 50), detail || `AI matting: ${pct}%`);
+        });
+        const cutoutImg = await createImageBitmap(cutoutBlob);
         
         let bgFill = '#FFFFFF';
         if (bgColor === 'white') bgFill = '#FFFFFF';
@@ -125,9 +129,11 @@ export const passportPhotoPlugin: ToolPlugin = {
         else if (bgColor === 'lightgrey') bgFill = '#F3F4F6';
         else if (bgColor.startsWith('#')) bgFill = bgColor;
 
-        ctx.fillStyle = bgFill;
-        ctx.fillRect(0, 0, photoW, photoH);
-        ctx.drawImage(cutout, srcX, srcY, srcW, srcH, 0, 0, photoW, photoH);
+        if (bgColor !== 'transparent') {
+          ctx.fillStyle = bgFill;
+          ctx.fillRect(0, 0, photoW, photoH);
+        }
+        ctx.drawImage(cutoutImg, srcX, srcY, srcW, srcH, 0, 0, photoW, photoH);
       } else {
         ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, photoW, photoH);
       }
@@ -135,16 +141,20 @@ export const passportPhotoPlugin: ToolPlugin = {
       // Subtle border cutting guide
       ctx.strokeStyle = '#E5E7EB';
       ctx.lineWidth = 1;
-      ctx.strokeRect(0, 0, photoW, photoH);
+      if (ctx.strokeRect) ctx.strokeRect(0, 0, photoW, photoH);
 
-      const singleBlob: Blob = await new Promise((res) => canvas.toBlob((b) => res(b!), 'image/jpeg', 0.95));
+      const isTransparent = removeBg && bgColor === 'transparent';
+      const mime = isTransparent ? 'image/png' : 'image/jpeg';
+      const ext = isTransparent ? 'png' : 'jpg';
+
+      const singleBlob: Blob = await new Promise((res) => canvas.toBlob((b) => res(b!), mime, 0.95));
       const baseName = file.name.replace(/\.[^/.]+$/, '');
 
       outputs.push({
-        name: `${baseName}-passport-photo.jpg`,
-        type: 'image/jpeg',
+        name: `${baseName}-passport-photo.${ext}`,
+        type: mime,
         data: singleBlob,
-        downloadName: `${baseName}-passport-${photoW}x${photoH}.jpg`,
+        downloadName: `${baseName}-passport-${photoW}x${photoH}.${ext}`,
         metadata: {
           dimensions: `${photoW}x${photoH}px @ 300 DPI`,
           format,
@@ -175,7 +185,7 @@ export const passportPhotoPlugin: ToolPlugin = {
             sCtx.drawImage(canvas, x, y);
             sCtx.strokeStyle = '#D1D5DB';
             sCtx.lineWidth = 1;
-            sCtx.strokeRect(x, y, photoW, photoH);
+            if (sCtx.strokeRect) sCtx.strokeRect(x, y, photoW, photoH);
           }
         }
 
