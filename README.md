@@ -19,12 +19,119 @@ Unlike conventional online tools that upload your sensitive documents, PDFs, and
 
 ---
 
-## 🔒 Privacy & Security Architecture
+## 🏗️ Architecture & Data Flowcharts
 
-- **Zero Data Egress:** Your files never leave your device. Network monitoring verifies zero outgoing file transmissions.
-- **Persistent Offline PWA:** Precached via Service Workers (`vite-plugin-pwa` + Workbox). Disconnect your internet or activate Airplane Mode—the entire application continues working seamlessly.
-- **Hardware Acceleration:** Employs client-side WebAssembly (WASM), WebGPU, and multithreaded SIMD for native-speed processing directly inside your browser.
-- **Ephemeral Memory:** Documents are handled via temporary in-memory `Blob` and `ArrayBuffer` objects and cleared immediately upon session reset.
+### 1. Zero-Egress Processing Lifecycle
+
+Every file operation executes entirely inside the browser's local sandbox. No data packets ever leave your machine:
+
+```mermaid
+flowchart TD
+    subgraph UserDevice["Client Device (Browser Sandbox)"]
+        A["User File (PDF / Image / Doc)"] --> B["Browser In-Memory Buffer (Blob / ArrayBuffer)"]
+        
+        subgraph Engine["Local Processing Engines (WASM / WebGPU / Canvas)"]
+            B --> C1["pdf-lib / pdfjs (PDF Manipulation & Cryptography)"]
+            B --> C2["transformers.js (RMBG-1.4 Neural Matting)"]
+            B --> C3["mammoth / xlsx (Document & Spreadsheet Parsers)"]
+            B --> C4["HTML5 Canvas 2D (Resizing & Color Compositing)"]
+        end
+        
+        C1 --> D["Processed Output Blob"]
+        C2 --> D
+        C3 --> D
+        C4 --> D
+        
+        D --> E["Browser Direct Save (a.download)"]
+        D --> F["Automatic Memory Purge (revokeObjectURL)"]
+    end
+    
+    subgraph External["External Cloud / Remote Internet"]
+        X["Third-Party Cloud Servers"]
+        Y["Remote AI APIs"]
+    end
+    
+    B -. "BLOCKED (Zero Egress)" .-> X
+    D -. "BLOCKED (Zero Egress)" .-> Y
+    
+    style UserDevice fill:#f8fafc,stroke:#3b82f6,stroke-width:2px
+    style Engine fill:#ffffff,stroke:#64748b,stroke-width:1px
+    style External fill:#fef2f2,stroke:#ef4444,stroke-width:2px,stroke-dasharray: 5 5
+```
+
+---
+
+### 2. AI Background Matting & Multi-Tier Fallback Pipeline
+
+For background removal in both the **AI Background Remover** and **Passport Photo Maker**, the tool uses a robust 3-tier cascade that guarantees inference succeeds even under severe resource or connectivity limits:
+
+```mermaid
+flowchart TD
+    A["Input Portrait / Product Image"] --> B["Check Cached Model Weights"]
+    
+    B --> C{"Tier 1: Bria AI RMBG-1.4"}
+    C -- "Available / Success" --> D["1024×1024 Native Resolution Deep Matting"]
+    
+    C -- "Device Memory Constrained" --> E{"Tier 2: Xenova MODNet"}
+    E -- "Success" --> F["Lightweight Portrait Matting Pipeline"]
+    
+    E -- "Zero Internet / Initial Run" --> G{"Tier 3: Offline Perceptual Matting"}
+    G --> H["Client-side Boundary Skin-Tone Protection"]
+    
+    D --> I["Refine Resampled Alpha Mask to Original Dimensions"]
+    F --> I
+    H --> I
+    
+    I --> J["Composite onto Custom BG / Export Alpha PNG"]
+    
+    style C fill:#ecfdf5,stroke:#10b981,stroke-width:1.5px
+    style E fill:#eff6ff,stroke:#3b82f6,stroke-width:1.5px
+    style G fill:#fffbeb,stroke:#f59e0b,stroke-width:1.5px
+    style J fill:#f8fafc,stroke:#6366f1,stroke-width:2px
+```
+
+---
+
+## 💾 Data Storage Architecture
+
+Offline Toolkit does **not** employ any remote database. All storage is partitioned into four distinct client-side browser layers:
+
+```mermaid
+flowchart LR
+    subgraph ClientStorage["Client-Side Browser Storage Subsystems"]
+        direction TB
+        RAM["1. Volatile RAM<br/><b>(Ephemeral Buffer)</b><br/>• Blobs, File pointers<br/>• ArrayBuffers, ImageBitmaps<br/>• Discarded on reset"]
+        IDB["2. IndexedDB<br/><b>(Structured Local DB)</b><br/>• offlineforge_timeline<br/>• File undo/rollback snapshots<br/>• offlineforge_db files"]
+        CACHE["3. Cache Storage<br/><b>(Persistent PWA & AI)</b><br/>• PWA Static App Shell<br/>• WASM binary runtimes<br/>• RMBG-1.4 Model Weights"]
+        LS["4. LocalStorage<br/><b>(Preferences & State)</b><br/>• Dark/Light Theme mode<br/>• Favorite tools list<br/>• Recent tools order"]
+    end
+    
+    style RAM fill:#f0fdf4,stroke:#22c55e,stroke-width:1.5px
+    style IDB fill:#eff6ff,stroke:#3b82f6,stroke-width:1.5px
+    style CACHE fill:#faf5ff,stroke:#a855f7,stroke-width:1.5px
+    style LS fill:#fff7ed,stroke:#f97316,stroke-width:1.5px
+```
+
+### Detailed Storage Tier Breakdown
+
+| Storage Tier | Technology | Purpose & Contents | Persistence |
+| :--- | :--- | :--- | :--- |
+| **Volatile RAM** | JS Heap, `Blob`, `ArrayBuffer` | Raw uploaded documents, decoded image pixels, and active canvas operations. | **Ephemeral:** Automatically freed when a tool is closed, reset, or when `URL.revokeObjectURL()` executes. |
+| **IndexedDB** | `indexedDB` API (`offlineforge_timeline`, `offlineforge_db`) | **Version Timeline:** Step-by-step document snapshots that allow instant multi-level undo/rollback.<br>**File Staging:** Temporary document state between tool chaining. | **Persistent:** Stored only on your device disk until cleared by user or browser quota. |
+| **Cache Storage** | Service Worker `caches` API | **PWA Assets:** Precached JavaScript bundles, CSS stylesheets, and WebAssembly binaries (`ort-wasm-simd-threaded.asyncify.wasm`, `pdf.worker`).<br>**AI Model Cache:** HuggingFace neural weights (`briaai/RMBG-1.4`) so AI runs offline without redownloading. | **Persistent:** Managed by Workbox PWA service worker and `@huggingface/transformers`. |
+| **LocalStorage** | `window.localStorage` | UI preferences, theme selection (Dark/Light), pinned favorite tools, and recent tool history. | **Persistent:** Plain text keys (`theme`, `favorites`, `recent_tools`). |
+
+---
+
+### 🧹 1-Click Privacy Sanitizer & Storage Wiper
+
+Offline Toolkit includes a built-in **Storage Wiper** (`src/core/privacy/storageWiper.ts`) accessible directly through the **Privacy Panel**:
+- **Single-Click Total Wipe:**
+  1. Empties all `localStorage` and `sessionStorage`.
+  2. Permanently deletes `offlineforge_db` and `offlineforge_timeline` IndexedDB databases.
+  3. Purges all registered Cache Storage partitions.
+  4. Releases all allocated object URLs and in-memory canvas references.
+- **Hardware Telemetry Audit:** Real-time indicator displaying active storage quota usage and verifying that external network egress is 0 bytes.
 
 ---
 
